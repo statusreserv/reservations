@@ -25,7 +25,7 @@ public class ScheduleValidator {
 
         newTimes.forEach(this::validateTime);
 
-        repository.findByTenantAndDayOfWeek(tenant.getId(), day)
+        repository.findByTenantIdAndDayOfWeek(tenant.getId(), day)
                 .stream()
                 .filter(existing -> !existing.getId().equals(ignoreId))
                 .forEach(existing -> {

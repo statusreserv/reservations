@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-@Service
 public interface ScheduleService {
 
     List<ScheduleDto> findAll();
@@ -23,7 +22,7 @@ public interface ScheduleService {
 
     UUID create(ScheduleWrite write);
 
-    ResponseEntity<Schedule> update(UUID id, ScheduleWrite write);
+    void update(UUID id, ScheduleWrite write);
 
     void delete(UUID id);
 }

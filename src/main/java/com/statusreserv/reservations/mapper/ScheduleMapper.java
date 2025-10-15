@@ -13,7 +13,6 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface ScheduleMapper {
 
-    @Mapping(source = "tenant.id", target = "tenantId")
     ScheduleDto toDTO(Schedule schedule);
 
     @Mapping(target = "tenant", source = "tenant")

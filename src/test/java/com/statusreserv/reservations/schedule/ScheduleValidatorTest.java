@@ -39,7 +39,7 @@ class ScheduleValidatorTest {
         schedule.setDayOfWeek(DayOfWeek.MONDAY);
         schedule.setScheduleTime(Set.of(new ScheduleTime(LocalTime.of(8, 0), LocalTime.of(12, 0))));
 
-        when(repository.findByTenantAndDayOfWeek(tenant.getId(), DayOfWeek.MONDAY)).thenReturn(List.of());
+        when(repository.findByTenantIdAndDayOfWeek(tenant.getId(), DayOfWeek.MONDAY)).thenReturn(List.of());
 
         assertDoesNotThrow(() -> validator.validateSchedule(schedule, null),
                 "Expected: schedule is valid and does not throw an exception. Test failed if an exception occurred.");
@@ -53,7 +53,7 @@ class ScheduleValidatorTest {
         Schedule incoming = buildSchedule(null, day,
                 Set.of(new ScheduleTime(LocalTime.of(8, 0), LocalTime.of(12, 0))));
 
-        when(repository.findByTenantAndDayOfWeek(tenant.getId(), day)).thenReturn(List.of(existing));
+        when(repository.findByTenantIdAndDayOfWeek(tenant.getId(), day)).thenReturn(List.of(existing));
 
         assertThrows(IllegalArgumentException.class,
                 () -> validator.validateSchedule(incoming, null),
@@ -68,7 +68,7 @@ class ScheduleValidatorTest {
         Schedule incoming = buildSchedule(null, day,
                 Set.of(new ScheduleTime(LocalTime.of(7, 0), LocalTime.of(15, 0))));
 
-        when(repository.findByTenantAndDayOfWeek(tenant.getId(), day)).thenReturn(List.of(existing));
+        when(repository.findByTenantIdAndDayOfWeek(tenant.getId(), day)).thenReturn(List.of(existing));
 
         assertThrows(IllegalArgumentException.class,
                 () -> validator.validateSchedule(incoming, null),
@@ -83,7 +83,7 @@ class ScheduleValidatorTest {
         Schedule incoming = buildSchedule(null, day,
                 Set.of(new ScheduleTime(LocalTime.of(9, 0), LocalTime.of(11, 0))));
 
-        when(repository.findByTenantAndDayOfWeek(tenant.getId(), day)).thenReturn(List.of(existing));
+        when(repository.findByTenantIdAndDayOfWeek(tenant.getId(), day)).thenReturn(List.of(existing));
 
         assertThrows(IllegalArgumentException.class,
                 () -> validator.validateSchedule(incoming, null),
@@ -98,7 +98,7 @@ class ScheduleValidatorTest {
         Schedule incoming = buildSchedule(null, day,
                 Set.of(new ScheduleTime(LocalTime.of(7, 0), LocalTime.of(9, 0))));
 
-        when(repository.findByTenantAndDayOfWeek(tenant.getId(), day)).thenReturn(List.of(existing));
+        when(repository.findByTenantIdAndDayOfWeek(tenant.getId(), day)).thenReturn(List.of(existing));
 
         assertThrows(IllegalArgumentException.class,
                 () -> validator.validateSchedule(incoming, null),
@@ -113,7 +113,7 @@ class ScheduleValidatorTest {
         Schedule incoming = buildSchedule(null, day,
                 Set.of(new ScheduleTime(LocalTime.of(11, 0), LocalTime.of(13, 0))));
 
-        when(repository.findByTenantAndDayOfWeek(tenant.getId(), day)).thenReturn(List.of(existing));
+        when(repository.findByTenantIdAndDayOfWeek(tenant.getId(), day)).thenReturn(List.of(existing));
 
         assertThrows(IllegalArgumentException.class,
                 () -> validator.validateSchedule(incoming, null),
@@ -128,7 +128,7 @@ class ScheduleValidatorTest {
         Schedule incoming = buildSchedule(null, day,
                 Set.of(new ScheduleTime(LocalTime.of(12, 0), LocalTime.of(14, 0))));
 
-        when(repository.findByTenantAndDayOfWeek(tenant.getId(), day)).thenReturn(List.of(existing));
+        when(repository.findByTenantIdAndDayOfWeek(tenant.getId(), day)).thenReturn(List.of(existing));
 
         assertDoesNotThrow(() -> validator.validateSchedule(incoming, null),
                 "Expected: schedule allowed when touching end of existing schedule. Test failed if exception occurred.");
@@ -142,7 +142,7 @@ class ScheduleValidatorTest {
         Schedule incoming = buildSchedule(null, day,
                 Set.of(new ScheduleTime(LocalTime.of(6, 0), LocalTime.of(8, 0))));
 
-        when(repository.findByTenantAndDayOfWeek(tenant.getId(), day)).thenReturn(List.of(existing));
+        when(repository.findByTenantIdAndDayOfWeek(tenant.getId(), day)).thenReturn(List.of(existing));
 
         assertDoesNotThrow(() -> validator.validateSchedule(incoming, null),
                 "Expected: schedule allowed when touching start of existing schedule. Test failed if exception occurred.");
@@ -156,7 +156,7 @@ class ScheduleValidatorTest {
         Schedule incoming = buildSchedule(null, day,
                 Set.of(new ScheduleTime(LocalTime.of(13, 0), LocalTime.of(15, 0))));
 
-        when(repository.findByTenantAndDayOfWeek(tenant.getId(), day)).thenReturn(List.of(existing));
+        when(repository.findByTenantIdAndDayOfWeek(tenant.getId(), day)).thenReturn(List.of(existing));
 
         assertDoesNotThrow(() -> validator.validateSchedule(incoming, null),
                 "Expected: schedule valid as times do not overlap. Test failed if exception occurred.");
@@ -173,7 +173,7 @@ class ScheduleValidatorTest {
         Schedule incoming = buildSchedule(null, day,
                 Set.of(new ScheduleTime(LocalTime.of(15, 0), LocalTime.of(17, 0))));
 
-        when(repository.findByTenantAndDayOfWeek(tenant.getId(), day)).thenReturn(List.of(existing));
+        when(repository.findByTenantIdAndDayOfWeek(tenant.getId(), day)).thenReturn(List.of(existing));
 
         assertThrows(IllegalArgumentException.class,
                 () -> validator.validateSchedule(incoming, null),
@@ -191,7 +191,7 @@ class ScheduleValidatorTest {
         Schedule incoming = buildSchedule(null, day,
                 Set.of(new ScheduleTime(LocalTime.of(12, 0), LocalTime.of(14, 0))));
 
-        when(repository.findByTenantAndDayOfWeek(tenant.getId(), day)).thenReturn(List.of(existing));
+        when(repository.findByTenantIdAndDayOfWeek(tenant.getId(), day)).thenReturn(List.of(existing));
 
         assertDoesNotThrow(() -> validator.validateSchedule(incoming, null),
                 "Expected: schedule allowed when touching multiple existing times. Test failed if exception occurred.");
@@ -227,7 +227,7 @@ class ScheduleValidatorTest {
         newSchedule.setDayOfWeek(DayOfWeek.WEDNESDAY);
         newSchedule.setScheduleTime(Set.of(new ScheduleTime(LocalTime.of(11, 0), LocalTime.of(13, 0))));
 
-        when(repository.findByTenantAndDayOfWeek(tenant.getId(), DayOfWeek.WEDNESDAY)).thenReturn(List.of(existing));
+        when(repository.findByTenantIdAndDayOfWeek(tenant.getId(), DayOfWeek.WEDNESDAY)).thenReturn(List.of(existing));
 
         Exception ex = assertThrows(IllegalArgumentException.class,
                 () -> validator.validateSchedule(newSchedule, null),
@@ -252,7 +252,7 @@ class ScheduleValidatorTest {
         updating.setDayOfWeek(DayOfWeek.THURSDAY);
         updating.setScheduleTime(Set.of(new ScheduleTime(LocalTime.of(9, 0), LocalTime.of(11, 0))));
 
-        when(repository.findByTenantAndDayOfWeek(tenant.getId(), DayOfWeek.THURSDAY)).thenReturn(List.of(existing));
+        when(repository.findByTenantIdAndDayOfWeek(tenant.getId(), DayOfWeek.THURSDAY)).thenReturn(List.of(existing));
 
         assertDoesNotThrow(() -> validator.validateSchedule(updating, id),
                 "Expected: updating same schedule should not throw an exception. Test failed if exception occurred.");
