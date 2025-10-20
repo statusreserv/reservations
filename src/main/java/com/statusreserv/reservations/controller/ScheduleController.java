@@ -4,6 +4,7 @@ import com.statusreserv.reservations.dto.ScheduleDto;
 import com.statusreserv.reservations.dto.ScheduleWrite;
 import com.statusreserv.reservations.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,32 +16,32 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ScheduleController {
 
-    private final ScheduleService scheduleServiceImpl;
+    private final ScheduleService scheduleService;
 
     @GetMapping
     public ResponseEntity<List<ScheduleDto>> getAll() {
-        return ResponseEntity.ok(scheduleServiceImpl.findAll());
+        return ResponseEntity.ok(scheduleService.findAll());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ScheduleDto> getById(@PathVariable UUID id) {
-        return ResponseEntity.ok(scheduleServiceImpl.findSchedule(id));
+        return ResponseEntity.ok(scheduleService.findSchedule(id));
     }
 
     @PostMapping
     public ResponseEntity<UUID> create(@RequestBody ScheduleWrite write) {
-        return ResponseEntity.ok(scheduleServiceImpl.create(write));
+        return ResponseEntity.ok(scheduleService.create(write));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Void> update(@PathVariable UUID id, @RequestBody ScheduleWrite write) {
-        scheduleServiceImpl.update(id,write);
+        scheduleService.update(id,write);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        scheduleServiceImpl.delete(id);
+        scheduleService.delete(id);
         return ResponseEntity.noContent().build();
     }
 }
