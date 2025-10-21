@@ -1,14 +1,14 @@
 package com.statusreserv.reservations.schedule;
 
-import com.statusreserv.reservations.dto.ScheduleDto;
+import com.statusreserv.reservations.dto.ScheduleDTO;
 import com.statusreserv.reservations.dto.ScheduleTimeWrite;
 import com.statusreserv.reservations.dto.ScheduleWrite;
 import com.statusreserv.reservations.mapper.ScheduleMapper;
 import com.statusreserv.reservations.model.schedule.Schedule;
 import com.statusreserv.reservations.model.tenant.Tenant;
 import com.statusreserv.reservations.repository.ScheduleRepository;
-import com.statusreserv.reservations.service.ScheduleService;
-import com.statusreserv.reservations.service.ScheduleServiceImpl;
+import com.statusreserv.reservations.service.schedule.ScheduleService;
+import com.statusreserv.reservations.service.schedule.ScheduleServiceImpl;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,9 +39,9 @@ class ScheduleServiceTest {
         schedule.setId(UUID.randomUUID());
 
         when(repository.findAll()).thenReturn(List.of(schedule));
-        when(mapper.toDTO(schedule)).thenReturn(new ScheduleDto(UUID.randomUUID(), DayOfWeek.MONDAY, Set.of()));
+        when(mapper.toDTO(schedule)).thenReturn(new ScheduleDTO(UUID.randomUUID(), DayOfWeek.MONDAY, Set.of()));
 
-        List<ScheduleDto> result = service.findAll();
+        List<ScheduleDTO> result = service.findAll();
 
         assertEquals(1, result.size());
         verify(repository, times(1)).findAll();

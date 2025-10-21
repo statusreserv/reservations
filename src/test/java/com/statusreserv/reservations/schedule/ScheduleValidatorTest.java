@@ -4,7 +4,7 @@ import com.statusreserv.reservations.model.schedule.Schedule;
 import com.statusreserv.reservations.model.schedule.ScheduleTime;
 import com.statusreserv.reservations.model.tenant.Tenant;
 import com.statusreserv.reservations.repository.ScheduleRepository;
-import com.statusreserv.reservations.service.ScheduleValidator;
+import com.statusreserv.reservations.service.schedule.ScheduleValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

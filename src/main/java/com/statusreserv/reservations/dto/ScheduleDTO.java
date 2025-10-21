@@ -4,8 +4,8 @@ import java.time.DayOfWeek;
 import java.util.Set;
 import java.util.UUID;
 
-public record ScheduleDto(
+public record ScheduleDTO(
         UUID id,
         DayOfWeek dayOfWeek,
-        Set<ScheduleTimeDto> scheduleTime
+        Set<ScheduleTimeDTO> scheduleTime
 ) {}

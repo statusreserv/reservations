@@ -1,8 +1,8 @@
 package com.statusreserv.reservations.controller;
 
-import com.statusreserv.reservations.dto.ScheduleDto;
+import com.statusreserv.reservations.dto.ScheduleDTO;
 import com.statusreserv.reservations.dto.ScheduleWrite;
-import com.statusreserv.reservations.service.ScheduleService;
+import com.statusreserv.reservations.service.schedule.ScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,12 +18,12 @@ public class ScheduleController {
     private final ScheduleService scheduleServiceImpl;
 
     @GetMapping
-    public ResponseEntity<List<ScheduleDto>> getAll() {
+    public ResponseEntity<List<ScheduleDTO>> getAll() {
         return ResponseEntity.ok(scheduleServiceImpl.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ScheduleDto> getById(@PathVariable UUID id) {
+    public ResponseEntity<ScheduleDTO> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(scheduleServiceImpl.findSchedule(id));
     }
 

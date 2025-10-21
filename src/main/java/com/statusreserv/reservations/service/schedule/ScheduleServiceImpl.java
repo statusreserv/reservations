@@ -1,6 +1,6 @@
-package com.statusreserv.reservations.service;
+package com.statusreserv.reservations.service.schedule;
 
-import com.statusreserv.reservations.dto.ScheduleDto;
+import com.statusreserv.reservations.dto.ScheduleDTO;
 import com.statusreserv.reservations.dto.ScheduleWrite;
 import com.statusreserv.reservations.mapper.ScheduleMapper;
 import com.statusreserv.reservations.model.schedule.Schedule;
@@ -24,7 +24,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     private final ScheduleRepository repository;
     private final ScheduleMapper mapper;
 
-    public List<ScheduleDto> findAll() {
+    public List<ScheduleDTO> findAll() {
         return getAll()
                 .stream()
                 .map(mapper::toDTO)
@@ -35,7 +35,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         return new HashSet<>(repository.findByTenantId(new Tenant().getId()));// TODO: Temporary placeholder. Replace with the tenant from context to use the actual tenant.
     }
 
-    public ScheduleDto findSchedule(UUID id) {
+    public ScheduleDTO findSchedule(UUID id) {
         return mapper.toDTO(getById(id));
     }
 
