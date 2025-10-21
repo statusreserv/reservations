@@ -19,3 +19,9 @@ cors:
 server:
   port: ${SERVER_PORT:8080}
   forward-headers-strategy: native
+
+api:
+  secret:
+    security:
+      token:
+        secret: ${DB_PASSWORD:tKx3+FZk6rW8xMRfXxskAc9sboeR0Pj84aEJ08zoZ9po2cxTjHnA4t5GToWw6m7bM1fUcq6bqAoW7r3QkA8q0w==}
