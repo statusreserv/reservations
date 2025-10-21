@@ -1,7 +1,7 @@
 package com.statusreserv.reservations.controller;
 
-import com.statusreserv.reservations.dto.ScheduleDTO;
-import com.statusreserv.reservations.dto.ScheduleWrite;
+import com.statusreserv.reservations.dto.schedule.ScheduleDTO;
+import com.statusreserv.reservations.dto.schedule.ScheduleWrite;
 import com.statusreserv.reservations.service.schedule.ScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

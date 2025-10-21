@@ -1,8 +1,8 @@
 package com.statusreserv.reservations.schedule;
 
-import com.statusreserv.reservations.dto.ScheduleDTO;
-import com.statusreserv.reservations.dto.ScheduleTimeWrite;
-import com.statusreserv.reservations.dto.ScheduleWrite;
+import com.statusreserv.reservations.dto.schedule.ScheduleDTO;
+import com.statusreserv.reservations.dto.schedule.ScheduleTimeWrite;
+import com.statusreserv.reservations.dto.schedule.ScheduleWrite;
 import com.statusreserv.reservations.mapper.ScheduleMapper;
 import com.statusreserv.reservations.model.schedule.Schedule;
 import com.statusreserv.reservations.model.tenant.Tenant;
