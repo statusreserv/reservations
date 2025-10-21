@@ -1,14 +1,16 @@
 package com.statusreserv.reservations.schedule;
 
-import com.statusreserv.reservations.dto.ScheduleDto;
-import com.statusreserv.reservations.dto.ScheduleTimeWrite;
-import com.statusreserv.reservations.dto.ScheduleWrite;
+import com.statusreserv.reservations.dto.schedule.ScheduleDTO;
+import com.statusreserv.reservations.dto.schedule.ScheduleTimeWrite;
+import com.statusreserv.reservations.dto.schedule.ScheduleWrite;
 import com.statusreserv.reservations.mapper.ScheduleMapper;
 import com.statusreserv.reservations.model.schedule.Schedule;
 import com.statusreserv.reservations.model.tenant.Tenant;
 import com.statusreserv.reservations.repository.ScheduleRepository;
-import com.statusreserv.reservations.service.ScheduleService;
-import com.statusreserv.reservations.service.ScheduleServiceImpl;
+import com.statusreserv.reservations.service.auth.CurrentUserService;
+import com.statusreserv.reservations.service.schedule.ScheduleService;
+import com.statusreserv.reservations.service.schedule.ScheduleServiceImpl;
+import com.statusreserv.reservations.service.schedule.ScheduleValidator;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,12 +27,16 @@ class ScheduleServiceTest {
     private ScheduleRepository repository;
     private ScheduleMapper mapper;
     private ScheduleService service;
+    private CurrentUserService currentUserService;
+    private ScheduleValidator validator;
 
     @BeforeEach
     void setup() {
         repository = mock(ScheduleRepository.class);
         mapper = mock(ScheduleMapper.class);
-        service = new ScheduleServiceImpl(repository, mapper);
+        currentUserService = mock(CurrentUserService.class);
+        validator = mock(ScheduleValidator.class);
+        service = new ScheduleServiceImpl(repository, mapper, currentUserService, validator);
     }
 
     @Test
@@ -39,9 +45,9 @@ class ScheduleServiceTest {
         schedule.setId(UUID.randomUUID());
 
         when(repository.findAll()).thenReturn(List.of(schedule));
-        when(mapper.toDTO(schedule)).thenReturn(new ScheduleDto(UUID.randomUUID(), DayOfWeek.MONDAY, Set.of()));
+        when(mapper.toDTO(schedule)).thenReturn(new ScheduleDTO(UUID.randomUUID(), DayOfWeek.MONDAY, Set.of()));
 
-        List<ScheduleDto> result = service.findAll();
+        List<ScheduleDTO> result = service.findAll();
 
         assertEquals(1, result.size());
         verify(repository, times(1)).findAll();
@@ -74,27 +80,39 @@ class ScheduleServiceTest {
     @Test
     void shouldUpdateScheduleSuccessfully() {
         UUID id = UUID.randomUUID();
+
         Schedule existing = new Schedule();
         existing.setId(id);
         existing.setDayOfWeek(DayOfWeek.SATURDAY);
 
-        ScheduleWrite write = new ScheduleWrite(DayOfWeek.SUNDAY, Set.of(new ScheduleTimeWrite(LocalTime.of(9, 0), LocalTime.of(11, 0))));
+        Tenant tenant = new Tenant();
+        ScheduleWrite write = new ScheduleWrite(
+                DayOfWeek.SUNDAY,
+                Set.of(new ScheduleTimeWrite(LocalTime.of(9, 0), LocalTime.of(11, 0)))
+        );
 
-        when(repository.findById(id)).thenReturn(Optional.of(existing));
-        when(repository.save(any(Schedule.class))).thenReturn(existing);
+        when(repository.findByIdAndTenantId(id, tenant.getId())).thenReturn(Optional.of(existing));
+        when(currentUserService.getCurrentTenant()).thenReturn(tenant);
+        when(mapper.toEntity(write, tenant)).thenReturn(existing);
+        when(repository.save(existing)).thenReturn(existing);
 
+        service.update(id, write);
 
-        verify(repository).save(existing);
+        verify(repository, times(1)).save(existing);
     }
+
 
     @Test
     void shouldDeleteScheduleSuccessfully() {
         UUID id = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
+
         when(repository.existsById(id)).thenReturn(true);
+        when(currentUserService.getCurrentTenantId()).thenReturn(tenantId);
 
         service.delete(id);
 
-        verify(repository, times(1)).deleteById(id);
+        verify(repository, times(1)).deleteByIdAndTenantId(id, tenantId);
     }
 
     @Test

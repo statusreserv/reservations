@@ -1,9 +1,9 @@
 package com.statusreserv.reservations.mapper;
 
-import com.statusreserv.reservations.dto.ScheduleDto;
-import com.statusreserv.reservations.dto.ScheduleTimeDto;
-import com.statusreserv.reservations.dto.ScheduleTimeWrite;
-import com.statusreserv.reservations.dto.ScheduleWrite;
+import com.statusreserv.reservations.dto.schedule.ScheduleDTO;
+import com.statusreserv.reservations.dto.schedule.ScheduleTimeDTO;
+import com.statusreserv.reservations.dto.schedule.ScheduleTimeWrite;
+import com.statusreserv.reservations.dto.schedule.ScheduleWrite;
 import com.statusreserv.reservations.model.schedule.Schedule;
 import com.statusreserv.reservations.model.schedule.ScheduleTime;
 import com.statusreserv.reservations.model.tenant.Tenant;
@@ -13,11 +13,12 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface ScheduleMapper {
 
-    ScheduleDto toDTO(Schedule schedule);
+    ScheduleDTO toDTO(Schedule schedule);
 
-    @Mapping(target = "tenant", source = "batatas")
-    Schedule toEntity(ScheduleWrite dto, Tenant batatas);
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "tenant", source = "tenant")
+    Schedule toEntity(ScheduleWrite dto, Tenant tenant);
     
-    ScheduleTimeDto toDTO(ScheduleTime scheduleTime);
+    ScheduleTimeDTO toDTO(ScheduleTime scheduleTime);
     ScheduleTime toEntity(ScheduleTimeWrite dto);
 }

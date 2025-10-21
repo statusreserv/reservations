@@ -1,14 +1,15 @@
-package com.statusreserv.reservations.service;
+package com.statusreserv.reservations.service.schedule;
 
-import com.statusreserv.reservations.dto.ScheduleDto;
-import com.statusreserv.reservations.dto.ScheduleWrite;
+import com.statusreserv.reservations.dto.schedule.ScheduleDTO;
+import com.statusreserv.reservations.dto.schedule.ScheduleWrite;
 import com.statusreserv.reservations.mapper.ScheduleMapper;
 import com.statusreserv.reservations.model.schedule.Schedule;
-import com.statusreserv.reservations.model.tenant.Tenant;
 import com.statusreserv.reservations.repository.ScheduleRepository;
+import com.statusreserv.reservations.service.auth.CurrentUserService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
@@ -16,15 +17,16 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-//TODO: fetch schedules by tenant
 @Service
 @RequiredArgsConstructor
 public class ScheduleServiceImpl implements ScheduleService {
 
     private final ScheduleRepository repository;
     private final ScheduleMapper mapper;
+    private final CurrentUserService currentUserService;
+    private final ScheduleValidator validator;
 
-    public List<ScheduleDto> findAll() {
+    public List<ScheduleDTO> findAll() {
         return getAll()
                 .stream()
                 .map(mapper::toDTO)
@@ -32,28 +34,32 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     public Set<Schedule> getAll() {
-        return new HashSet<>(repository.findByTenantId(new Tenant().getId()));// TODO: Temporary placeholder. Replace with the tenant from context to use the actual tenant.
+        return new HashSet<>(repository.findByTenantId(currentUserService.getCurrentTenantId()));
     }
 
-    public ScheduleDto findSchedule(UUID id) {
+    public ScheduleDTO findSchedule(UUID id) {
         return mapper.toDTO(getById(id));
     }
 
     public Schedule getById(UUID id) {
-        return repository.findById(id)
+        return repository.findByIdAndTenantId(id, currentUserService.getCurrentTenantId())
                 .orElseThrow(() -> new EntityNotFoundException("Schedule not found"));
     }
 
+    @Transactional
     public UUID create(ScheduleWrite write) {
-        var schedule = mapper.toEntity(write, new Tenant());// TODO: Temporary placeholder. Replace with the tenant from context to use the actual tenant.
+        var schedule = mapper.toEntity(write, currentUserService.getCurrentTenant());
         var scheduleTimes = write.scheduleTime()
                 .stream()
                 .map(mapper::toEntity)
                 .collect(Collectors.toSet());
         schedule.setScheduleTime(scheduleTimes);
-        return repository.save(schedule).getId();
+        var entity = repository.save(schedule);
+        validator.validateSchedule(entity, entity.getId());
+        return entity.getId();
     }
 
+    @Transactional
     public void update(UUID id, ScheduleWrite write) {
         var existing = getById(id);
 
@@ -68,10 +74,11 @@ public class ScheduleServiceImpl implements ScheduleService {
         repository.save(existing);
     }
 
+    @Transactional
     public void delete(UUID id) {
         if (!repository.existsById(id)) {
             throw new EntityNotFoundException("Schedule not found");
         }
-        repository.deleteById(id);
+        repository.deleteByIdAndTenantId(id, currentUserService.getCurrentTenantId());
     }
 }
