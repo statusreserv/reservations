@@ -14,33 +14,32 @@ import java.util.UUID;
 @RequestMapping("/api/schedules")
 @RequiredArgsConstructor
 public class ScheduleController {
-
-    private final ScheduleService scheduleServiceImpl;
+    private final ScheduleService scheduleService;
 
     @GetMapping
     public ResponseEntity<List<ScheduleDTO>> getAll() {
-        return ResponseEntity.ok(scheduleServiceImpl.findAll());
+        return ResponseEntity.ok(scheduleService.findAll());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ScheduleDTO> getById(@PathVariable UUID id) {
-        return ResponseEntity.ok(scheduleServiceImpl.findSchedule(id));
+        return ResponseEntity.ok(scheduleService.findSchedule(id));
     }
 
     @PostMapping
     public ResponseEntity<UUID> create(@RequestBody ScheduleWrite write) {
-        return ResponseEntity.ok(scheduleServiceImpl.create(write));
+        return ResponseEntity.ok(scheduleService.create(write));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Void> update(@PathVariable UUID id, @RequestBody ScheduleWrite write) {
-        scheduleServiceImpl.update(id,write);
+        scheduleService.update(id,write);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        scheduleServiceImpl.delete(id);
+        scheduleService.delete(id);
         return ResponseEntity.noContent().build();
     }
 }

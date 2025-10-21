@@ -18,7 +18,7 @@ public interface ScheduleMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "tenant", source = "tenant")
     Schedule toEntity(ScheduleWrite dto, Tenant tenant);
-    
+
     ScheduleTimeDTO toDTO(ScheduleTime scheduleTime);
     ScheduleTime toEntity(ScheduleTimeWrite dto);
 }

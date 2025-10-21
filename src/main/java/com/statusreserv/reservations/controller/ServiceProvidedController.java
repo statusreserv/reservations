@@ -1,9 +1,8 @@
 package com.statusreserv.reservations.controller;
 
-import com.statusreserv.reservations.dto.ServiceProvidedDTO;
-import com.statusreserv.reservations.dto.ServiceProvidedWrite;
-import com.statusreserv.reservations.model.service.ServiceProvided;
-import com.statusreserv.reservations.service.ServiceProvidedService;
+import com.statusreserv.reservations.dto.service.ServiceProvidedDTO;
+import com.statusreserv.reservations.dto.service.ServiceProvidedWrite;
+import com.statusreserv.reservations.service.service.ServiceProvidedService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,8 +22,8 @@ public class ServiceProvidedController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ServiceProvided> findByTenantId(@PathVariable UUID id) {
-        return ResponseEntity.ok(serviceProvidedService.findByTenantId(id));
+    public ResponseEntity<ServiceProvidedDTO> findById(@PathVariable UUID id) {
+        return ResponseEntity.ok(serviceProvidedService.findService(id));
     }
 
     @PostMapping

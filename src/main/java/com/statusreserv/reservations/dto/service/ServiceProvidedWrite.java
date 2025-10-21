@@ -1,4 +1,4 @@
-package com.statusreserv.reservations.dto;
+package com.statusreserv.reservations.dto.service;
 
 import java.math.BigDecimal;
 

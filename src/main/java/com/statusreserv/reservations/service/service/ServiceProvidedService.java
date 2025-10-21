@@ -1,7 +1,7 @@
-package com.statusreserv.reservations.service;
+package com.statusreserv.reservations.service.service;
 
-import com.statusreserv.reservations.dto.ServiceProvidedDTO;
-import com.statusreserv.reservations.dto.ServiceProvidedWrite;
+import com.statusreserv.reservations.dto.service.ServiceProvidedDTO;
+import com.statusreserv.reservations.dto.service.ServiceProvidedWrite;
 import com.statusreserv.reservations.model.service.ServiceProvided;
 import org.springframework.stereotype.Service;
 
@@ -13,9 +13,10 @@ public interface ServiceProvidedService {
 
     List<ServiceProvidedDTO> findAll();
 
-    ServiceProvided findByTenantId(UUID id);
+    ServiceProvidedDTO findService(UUID id);
 
-    //why UUID create
+    ServiceProvided findById(UUID id);
+
     UUID create(ServiceProvidedWrite write);
 
     void update(UUID id, ServiceProvidedWrite write);
