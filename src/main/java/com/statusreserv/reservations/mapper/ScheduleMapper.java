@@ -15,6 +15,7 @@ public interface ScheduleMapper {
 
     ScheduleDTO toDTO(Schedule schedule);
 
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "tenant", source = "tenant")
     Schedule toEntity(ScheduleWrite dto, Tenant tenant);
     

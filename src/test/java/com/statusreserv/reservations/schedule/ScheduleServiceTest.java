@@ -7,8 +7,10 @@ import com.statusreserv.reservations.mapper.ScheduleMapper;
 import com.statusreserv.reservations.model.schedule.Schedule;
 import com.statusreserv.reservations.model.tenant.Tenant;
 import com.statusreserv.reservations.repository.ScheduleRepository;
+import com.statusreserv.reservations.service.auth.CurrentUserService;
 import com.statusreserv.reservations.service.schedule.ScheduleService;
 import com.statusreserv.reservations.service.schedule.ScheduleServiceImpl;
+import com.statusreserv.reservations.service.schedule.ScheduleValidator;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,12 +27,16 @@ class ScheduleServiceTest {
     private ScheduleRepository repository;
     private ScheduleMapper mapper;
     private ScheduleService service;
+    private CurrentUserService currentUserService;
+    private ScheduleValidator validator;
 
     @BeforeEach
     void setup() {
         repository = mock(ScheduleRepository.class);
         mapper = mock(ScheduleMapper.class);
-        service = new ScheduleServiceImpl(repository, mapper);
+        currentUserService = mock(CurrentUserService.class);
+        validator = mock(ScheduleValidator.class);
+        service = new ScheduleServiceImpl(repository, mapper, currentUserService, validator);
     }
 
     @Test
