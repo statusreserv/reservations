@@ -80,27 +80,39 @@ class ScheduleServiceTest {
     @Test
     void shouldUpdateScheduleSuccessfully() {
         UUID id = UUID.randomUUID();
+
         Schedule existing = new Schedule();
         existing.setId(id);
         existing.setDayOfWeek(DayOfWeek.SATURDAY);
 
-        ScheduleWrite write = new ScheduleWrite(DayOfWeek.SUNDAY, Set.of(new ScheduleTimeWrite(LocalTime.of(9, 0), LocalTime.of(11, 0))));
+        Tenant tenant = new Tenant();
+        ScheduleWrite write = new ScheduleWrite(
+                DayOfWeek.SUNDAY,
+                Set.of(new ScheduleTimeWrite(LocalTime.of(9, 0), LocalTime.of(11, 0)))
+        );
 
-        when(repository.findById(id)).thenReturn(Optional.of(existing));
-        when(repository.save(any(Schedule.class))).thenReturn(existing);
+        when(repository.findByIdAndTenantId(id, tenant.getId())).thenReturn(Optional.of(existing));
+        when(currentUserService.getCurrentTenant()).thenReturn(tenant);
+        when(mapper.toEntity(write, tenant)).thenReturn(existing);
+        when(repository.save(existing)).thenReturn(existing);
 
+        service.update(id, write);
 
-        verify(repository).save(existing);
+        verify(repository, times(1)).save(existing);
     }
+
 
     @Test
     void shouldDeleteScheduleSuccessfully() {
         UUID id = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
+
         when(repository.existsById(id)).thenReturn(true);
+        when(currentUserService.getCurrentTenantId()).thenReturn(tenantId);
 
         service.delete(id);
 
-        verify(repository, times(1)).deleteById(id);
+        verify(repository, times(1)).deleteByIdAndTenantId(id, tenantId);
     }
 
     @Test
