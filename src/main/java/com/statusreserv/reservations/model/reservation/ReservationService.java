@@ -1,6 +1,6 @@
 package com.statusreserv.reservations.model.reservation;
 
-import com.statusreserv.reservations.model.service.Service;
+import com.statusreserv.reservations.model.service.ServiceProvided;
 import com.statusreserv.reservations.model.tenant.Tenant;
 import jakarta.persistence.*;
 import lombok.*;
@@ -26,7 +26,7 @@ public class ReservationService {
     private Instant updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    private Service service;
+    private ServiceProvided service;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Reservation reservation;

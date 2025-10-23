@@ -3,8 +3,8 @@ spring:
     name: reservations
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/reservations}
-    username: ${DB_USER:postgres}
-    password: ${DB_PASSWORD:postgres}
+    username: ${DB_USER:coderik}
+    password: ${DB_PASSWORD:4455}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
