@@ -36,7 +36,7 @@ public class ServiceProvidedServiceImpl implements ServiceProvidedService {
 
     public ServiceProvided findById(UUID id) {
         return repository.findByIdAndTenantId(id, currentUserService.getCurrentTenantId())
-                .orElseThrow(() -> new EntityNotFoundException("Tenant not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Service not found"));
     }
 
     @Transactional
@@ -60,7 +60,7 @@ public class ServiceProvidedServiceImpl implements ServiceProvidedService {
     @Transactional
     public void delete(UUID id) {
         if (!repository.existsById(id)) {
-            throw new EntityNotFoundException("Tenant not found");
+            throw new EntityNotFoundException("Service not found");
         }
         repository.deleteById(id);
     }
