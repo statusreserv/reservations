@@ -36,7 +36,7 @@ public class Reservation {
     private Customer customer;
 
     @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL)
-    private List<ReservationService> services;
+    private Set<ReservationServiceProvided> serviceReservation;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Tenant tenant;
