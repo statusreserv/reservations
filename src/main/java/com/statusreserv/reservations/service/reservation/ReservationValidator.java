@@ -23,7 +23,7 @@ public class ReservationValidator {
         LocalDate date = reservation.getDate();
         Set<ReservationServiceProvided> reservationService = reservation.getServiceReservation();
 
-        reservationService.forEach(this::validateReservation);
+        reservationService.forEach(this::validateReservationServiceProvided);
 
         repository.findByTenantIdAndDate(tenant.getId(), date)
                 .stream()
@@ -39,18 +39,20 @@ public class ReservationValidator {
                 });
     }
 
-    private void validateReservation(ReservationServiceProvided reservation) {
-        if (reservation.getReservation().getDate() == null ||
-                reservation.getReservation().getStartTime() == null ||
-                reservation.getReservation().getEndTime() == null ||
-                reservation.getReservation().getTotalPrice() == null) {
-            throw new IllegalArgumentException("Reservation must include date, start time, end time, and total price");
+    private void validateReservationServiceProvided(ReservationServiceProvided reservation) {
+        if (reservation.getName() == null ||
+                reservation.getDescription() == null ||
+                reservation.getPrice() == null ||
+                reservation.getDurationMinutes() == null) {
+            throw new IllegalArgumentException("Reservation must include name, description, price and duration in minutes");
+        }
+        if (reservation.getReservation().getStartTime() == null || reservation.getReservation().getEndTime() == null) {
+            throw new IllegalArgumentException("Reservation must include start and end time");
         }
 
         if (!reservation.getReservation().getStartTime().isBefore(reservation.getReservation().getEndTime())) {
             throw new IllegalArgumentException("Start time must be before end time");
         }
-
     }
 
     private boolean isOverlapping(ReservationServiceProvided a, ReservationServiceProvided b) {
@@ -61,5 +63,4 @@ public class ReservationValidator {
 
         return startA.isBefore(endB) && startB.isBefore(endA);
     }
-
 }

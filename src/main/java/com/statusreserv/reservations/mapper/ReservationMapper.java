@@ -13,6 +13,7 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface ReservationMapper {
 
+    @Mapping(target = "reservationService", source = "serviceReservation")
     ReservationDTO toDTO(Reservation reservation);
 
     @Mapping(target = "id", ignore = true)

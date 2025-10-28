@@ -1,5 +1,7 @@
 package com.statusreserv.reservations.dto.reservation;
 
+import com.statusreserv.reservations.model.reservation.Status;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -12,5 +14,6 @@ public record ReservationDTO(
         LocalTime startTime,
         LocalTime endTime,
         BigDecimal totalPrice,
+        Status status,
         Set<ReservationServiceProvidedDTO> reservationService
 ) {}

@@ -2,8 +2,6 @@ package com.statusreserv.reservations.controller;
 
 import com.statusreserv.reservations.dto.reservation.ReservationDTO;
 import com.statusreserv.reservations.dto.reservation.ReservationWrite;
-import com.statusreserv.reservations.model.reservation.Reservation;
-import com.statusreserv.reservations.model.reservation.ReservationServiceProvided;
 import com.statusreserv.reservations.service.reservation.ReservationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +32,7 @@ public class ReservationController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Void> update(@PathVariable UUID id,@RequestBody ReservationWrite write) {
+    public ResponseEntity<Void> update(@PathVariable UUID id, @RequestBody ReservationWrite write) {
         reservationService.update(id, write);
         return ResponseEntity.noContent().build();
     }

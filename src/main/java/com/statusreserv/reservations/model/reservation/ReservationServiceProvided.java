@@ -2,10 +2,7 @@ package com.statusreserv.reservations.model.reservation;
 
 import com.statusreserv.reservations.model.tenant.Tenant;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.With;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -13,13 +10,15 @@ import java.util.UUID;
 
 @Entity
 @Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @With
-@Table(name ="tbl_reservation_services")
+@Table(name = "tbl_reservation_services")
 public class ReservationServiceProvided {
     @Id
     @GeneratedValue
+    @EqualsAndHashCode.Include
     private UUID id;
 
     private String name;

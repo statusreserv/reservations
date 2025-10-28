@@ -4,6 +4,7 @@ import com.statusreserv.reservations.dto.reservation.ReservationDTO;
 import com.statusreserv.reservations.dto.reservation.ReservationWrite;
 import com.statusreserv.reservations.mapper.ReservationMapper;
 import com.statusreserv.reservations.model.reservation.Reservation;
+import com.statusreserv.reservations.model.reservation.Status;
 import com.statusreserv.reservations.repository.ReservationRepository;
 import com.statusreserv.reservations.service.auth.CurrentUserService;
 import jakarta.persistence.EntityNotFoundException;
@@ -49,11 +50,14 @@ public class ReservationServiceImpl implements ReservationService {
     @Transactional
     public UUID create(ReservationWrite write) {
         var reservation = mapper.toEntity(write, currentUserService.getCurrentTenant());
+        reservation.setStatus(Status.PENDING);
         var reservationService = write.reservationService()
                 .stream()
                 .map(mapper::toEntity)
                 .collect(Collectors.toSet());
-        //reservationService.forEach(s -> s.setReservation(reservation));
+
+        reservationService.forEach(serviceProvided -> serviceProvided.setReservation(reservation));
+
         reservation.setServiceReservation(reservationService);
         var entity = repository.save(reservation);
         validator.validateReservation(entity, entity.getId());

@@ -5,12 +5,17 @@ import com.statusreserv.reservations.model.tenant.Tenant;
 import com.statusreserv.reservations.model.user.UserAuth;
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.math.BigDecimal;
-import java.time.*;
-import java.util.*;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @With
@@ -18,6 +23,7 @@ import java.util.*;
 public class Reservation {
     @Id
     @GeneratedValue
+    @EqualsAndHashCode.Include
     private UUID id;
 
     private LocalDate date;
