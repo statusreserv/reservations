@@ -10,8 +10,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+import static com.statusreserv.reservations.constants.Endpoints.ID;
+import static com.statusreserv.reservations.constants.Endpoints.SCHEDULE;
+
 @RestController
-@RequestMapping("/api/schedules")
+@RequestMapping(SCHEDULE)
 @RequiredArgsConstructor
 public class ScheduleController {
     private final ScheduleService scheduleService;
@@ -21,7 +24,7 @@ public class ScheduleController {
         return ResponseEntity.ok(scheduleService.findAll());
     }
 
-    @GetMapping("/{id}")
+    @GetMapping(ID)
     public ResponseEntity<ScheduleDTO> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(scheduleService.findSchedule(id));
     }
@@ -31,13 +34,13 @@ public class ScheduleController {
         return ResponseEntity.ok(scheduleService.create(write));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(ID)
     public ResponseEntity<Void> update(@PathVariable UUID id, @RequestBody ScheduleWrite write) {
         scheduleService.update(id,write);
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping(ID)
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         scheduleService.delete(id);
         return ResponseEntity.noContent().build();
