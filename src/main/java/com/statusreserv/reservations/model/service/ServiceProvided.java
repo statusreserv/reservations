@@ -28,5 +28,4 @@ public class ServiceProvided {
     @ManyToOne(fetch = FetchType.LAZY)
     private Tenant tenant;
 
-
 }

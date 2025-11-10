@@ -105,7 +105,9 @@ public class AvailabilityServiceImpl implements AvailabilityService {
             var dayPeriods = entry.getValue();
             var dayReservations = reservationsByDate.getOrDefault(date, List.of());
 
-            for (TimeRangeDTO(LocalTime start, LocalTime end) : dayPeriods) {
+            for (TimeRangeDTO range : dayPeriods) {
+                LocalTime start = range.start();
+                LocalTime end = range.end();
 
                 while (!start.plusMinutes(durationMinutes).isAfter(end)) {
                     var slotEnd = start.plusMinutes(durationMinutes);
@@ -123,6 +125,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
                     start = start.plusMinutes(durationMinutes);
                 }
             }
+
         }
 
        return availableSlots.stream().sorted(
