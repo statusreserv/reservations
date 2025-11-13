@@ -3,8 +3,8 @@ spring:
     name: reservations
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/reservations}
-    username: ${DB_USER:coderik}
-    password: ${DB_PASSWORD:4455}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -13,6 +13,15 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  mail:
+    username: ses-smtp-user.20251112-195207
+    password: BE3UeaseTAuAtAtem0ny0YYy5GJbX1xbpUxWiQKZhdi8
+
+
+aws:
+  accessKey: AKIA4F2I5BLOWQYN6XHI
+  secretKey: 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
+  region: eu-north-1
 
 cors:
   origin: ${FRONT_END_URL:http://localhost:4200/}
