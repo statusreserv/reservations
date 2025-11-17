@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -37,6 +38,10 @@ public class ServiceProvidedServiceImpl implements ServiceProvidedService {
     public ServiceProvided findById(UUID id) {
         return repository.findByIdAndTenantId(id, currentUserService.getCurrentTenantId())
                 .orElseThrow(() -> new EntityNotFoundException("Service not found"));
+    }
+
+    public List<ServiceProvided> findByIdIn(Set<UUID> ids) {
+        return repository.findByIdInAndTenantId(ids, currentUserService.getCurrentTenantId());
     }
 
     @Transactional

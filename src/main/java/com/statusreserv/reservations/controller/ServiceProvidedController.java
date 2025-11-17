@@ -10,8 +10,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+import static com.statusreserv.reservations.constants.Endpoints.*;
+
 @RestController
-@RequestMapping("/api/services")
+@RequestMapping(SERVICES)
 @RequiredArgsConstructor
 public class ServiceProvidedController {
     private final ServiceProvidedService serviceProvidedService;
@@ -21,7 +23,7 @@ public class ServiceProvidedController {
         return ResponseEntity.ok(serviceProvidedService.findAll());
     }
 
-    @GetMapping("/{id}")
+    @GetMapping(ID)
     public ResponseEntity<ServiceProvidedDTO> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(serviceProvidedService.findService(id));
     }
@@ -31,13 +33,13 @@ public class ServiceProvidedController {
         return ResponseEntity.ok(serviceProvidedService.create(write));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(ID)
     private ResponseEntity<Void> update(@PathVariable UUID id, @RequestBody ServiceProvidedWrite write) {
         serviceProvidedService.update(id, write);
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping(ID)
     private ResponseEntity<Void> delete(@PathVariable UUID id) {
         serviceProvidedService.delete(id);
         return ResponseEntity.noContent().build();

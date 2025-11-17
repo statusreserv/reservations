@@ -6,6 +6,7 @@ import com.statusreserv.reservations.model.service.ServiceProvided;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -16,6 +17,8 @@ public interface ServiceProvidedService {
     ServiceProvidedDTO findService(UUID id);
 
     ServiceProvided findById(UUID id);
+
+    List<ServiceProvided> findByIdIn(Set<UUID> id);
 
     UUID create(ServiceProvidedWrite write);
 

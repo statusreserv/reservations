@@ -10,13 +10,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static com.statusreserv.reservations.constants.Endpoints.AUTH;
+import static com.statusreserv.reservations.constants.Endpoints.LOGIN;
+
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping(AUTH)
 @RequiredArgsConstructor
 public class LoginController {
     private final LoginService loginService;
 
-    @PostMapping("/login")
+    @PostMapping(LOGIN)
     public ResponseEntity<?> login(@RequestBody @Valid AuthenticationDTO data) {
         return ResponseEntity.ok(loginService.login(data));
     }

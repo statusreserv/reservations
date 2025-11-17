@@ -57,7 +57,7 @@ class ScheduleValidatorTest {
 
         assertThrows(IllegalArgumentException.class,
                 () -> validator.validateSchedule(incoming, null),
-                "Expected: exception due to full overlap. Test failed if no exception occurred.");
+                "Expected: exception due end full overlap. Test failed if no exception occurred.");
     }
 
     @Test
@@ -102,7 +102,7 @@ class ScheduleValidatorTest {
 
         assertThrows(IllegalArgumentException.class,
                 () -> validator.validateSchedule(incoming, null),
-                "Expected: exception due to partial overlap at start. Test failed if no exception occurred.");
+                "Expected: exception due end partial overlap at start. Test failed if no exception occurred.");
     }
 
     @Test
@@ -117,7 +117,7 @@ class ScheduleValidatorTest {
 
         assertThrows(IllegalArgumentException.class,
                 () -> validator.validateSchedule(incoming, null),
-                "Expected: exception due to partial overlap at end. Test failed if no exception occurred.");
+                "Expected: exception due end partial overlap at end. Test failed if no exception occurred.");
     }
 
     @Test
@@ -177,7 +177,7 @@ class ScheduleValidatorTest {
 
         assertThrows(IllegalArgumentException.class,
                 () -> validator.validateSchedule(incoming, null),
-                "Expected: exception due to overlap with multiple existing times. Test failed if no exception occurred.");
+                "Expected: exception due end overlap with multiple existing times. Test failed if no exception occurred.");
     }
 
     @Test
@@ -207,7 +207,7 @@ class ScheduleValidatorTest {
 
         Exception ex = assertThrows(IllegalArgumentException.class,
                 () -> validator.validateSchedule(schedule, null),
-                "Expected: exception due to start time after end time. Test failed if no exception occurred.");
+                "Expected: exception due end start time after end time. Test failed if no exception occurred.");
         assertTrue(ex.getMessage().contains("Invalid ScheduleTime"));
     }
 
@@ -231,7 +231,7 @@ class ScheduleValidatorTest {
 
         Exception ex = assertThrows(IllegalArgumentException.class,
                 () -> validator.validateSchedule(newSchedule, null),
-                "Expected: exception due to overlapping schedule. Test failed if no exception occurred.");
+                "Expected: exception due end overlapping schedule. Test failed if no exception occurred.");
         assertTrue(ex.getMessage().contains("overlapping time"));
     }
 
