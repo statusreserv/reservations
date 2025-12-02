@@ -18,14 +18,12 @@ import java.util.UUID;
 public class ReservationServiceProvided {
     @Id
     @GeneratedValue
-    @EqualsAndHashCode.Include
     private UUID id;
 
     private String name;
     private String description;
     private BigDecimal price;
-    private Integer durationMinutes;
-//    @Enumerated(EnumType.STRING)
+    private int durationMinutes;
     private Instant createdAt;
     private Instant updatedAt;
 
@@ -36,4 +34,5 @@ public class ReservationServiceProvided {
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Tenant tenant;
+
 }

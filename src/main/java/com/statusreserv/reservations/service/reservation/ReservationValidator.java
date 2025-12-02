@@ -1,14 +1,18 @@
 package com.statusreserv.reservations.service.reservation;
 
+import com.statusreserv.reservations.dto.availability.TimeRangeDTO;
+import com.statusreserv.reservations.dto.availability.TimeSlotDTO;
 import com.statusreserv.reservations.model.reservation.Reservation;
 import com.statusreserv.reservations.model.reservation.ReservationServiceProvided;
-import com.statusreserv.reservations.model.tenant.Tenant;
+import com.statusreserv.reservations.model.schedule.Schedule;
 import com.statusreserv.reservations.repository.ReservationRepository;
+import com.statusreserv.reservations.repository.ScheduleRepository;
+import com.statusreserv.reservations.service.availability.AvailabilityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -16,51 +20,107 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ReservationValidator {
 
-    private final ReservationRepository repository;
+    private final ReservationRepository reservationRepository;
+    private final AvailabilityService availabilityService;
+    private final ScheduleRepository scheduleRepository;
 
     public void validateReservation(Reservation reservation, UUID ignoreId) {
-        Tenant tenant = reservation.getTenant();
-        LocalDate date = reservation.getDate();
-        Set<ReservationServiceProvided> reservationService = reservation.getServiceReservation();
 
-        reservationService.forEach(this::validateReservationServiceProvided);
+        reservation.getReservationServices().forEach(this::validateReservationServiceProvided);
 
-        repository.findByTenantIdAndDate(tenant.getId(), date)
+        int totalDuration = reservation.getReservationServices()
                 .stream()
-                .filter(existing -> !existing.getId().equals(ignoreId))
-                .forEach(existing -> {
-                    for (ReservationServiceProvided existingReservation : existing.getServiceReservation()) {
-                        for (ReservationServiceProvided newReservation : reservationService) {
-                            if (isOverlapping(existingReservation, newReservation)) {
-                                throw new IllegalArgumentException("Reservation already exists" + existingReservation.getId() + " on " + existing.getDate());
-                            }
-                        }
-                    }
-                });
+                .mapToInt(ReservationServiceProvided::getDurationMinutes)
+                .sum();
+
+        List<Schedule> schedules = scheduleRepository.findByTenantIdAndDayOfWeek(reservation.getTenant().getId(), reservation.getDate().getDayOfWeek());
+
+        checkWithinSchedule(schedules, reservation);
+
+        //Searches BD for all the reservations on that day that are not the one we're trying to create(ignoredID)
+        List<Reservation> existing = reservationRepository.findByTenantIdAndDate(reservation.getTenant().getId(), reservation.getDate())
+                .stream()
+                .filter(reservation1 -> !reservation1.getId().equals(ignoreId))
+                .toList();
+
+        checkOverlap(existing, reservation);
+
+        //Creates a List of all the busyPeriods on that day
+        List<TimeRangeDTO> busyPeriods = existing
+                .stream()
+                .map(reservation1 -> new TimeRangeDTO(reservation1.getStartTime(), reservation1.getEndTime()))
+                .toList();
+
+        //Creates a List of availableTimeSlots that are ok to create the reservation
+        Set<TimeSlotDTO> availableTimeSlots = availabilityService.getAvailableTimeSlots(
+                Map.of(reservation.getDate(), busyPeriods),
+                totalDuration
+        );
+
+        checkAvailableTimeSlots(availableTimeSlots, reservation);
     }
 
-    private void validateReservationServiceProvided(ReservationServiceProvided reservation) {
-        if (reservation.getName() == null ||
-                reservation.getDescription() == null ||
-                reservation.getPrice() == null ||
-                reservation.getDurationMinutes() == null) {
-            throw new IllegalArgumentException("Reservation must include name, description, price and duration in minutes");
-        }
-        if (reservation.getReservation().getStartTime() == null || reservation.getReservation().getEndTime() == null) {
-            throw new IllegalArgumentException("Reservation must include start and end time");
-        }
+    private void validateReservationServiceProvided(ReservationServiceProvided rsp) {
+        if (!rsp.getReservation().getStartTime().isBefore(rsp.getReservation().getEndTime())) {
+            throw new IllegalArgumentException(
+                    String.format(
+                            "Service has invalid time range: %s to %s.",
+                            rsp.getReservation().getStartTime(),
+                            rsp.getReservation().getEndTime()
+                    )
+            );
 
-        if (!reservation.getReservation().getStartTime().isBefore(reservation.getReservation().getEndTime())) {
-            throw new IllegalArgumentException("Start time must be before end time");
         }
     }
 
-    private boolean isOverlapping(ReservationServiceProvided a, ReservationServiceProvided b) {
-        LocalTime startA = a.getReservation().getStartTime();
-        LocalTime endA = a.getReservation().getEndTime();
-        LocalTime startB = b.getReservation().getStartTime();
-        LocalTime endB = b.getReservation().getEndTime();
+    private void checkWithinSchedule(List<Schedule> schedules, Reservation reservation) {
+        boolean withinSchedule = schedules.stream().anyMatch(
+                schedule -> schedule.getScheduleTime().stream().anyMatch(
+                        scheduleTime -> !reservation.getStartTime().isBefore(scheduleTime.getOpenTime()) &&
+                                !reservation.getEndTime().isAfter(scheduleTime.getCloseTime())));
 
-        return startA.isBefore(endB) && startB.isBefore(endA);
+
+        if (!withinSchedule) {
+            throw new IllegalArgumentException(
+                    String.format(
+                            "Reservation from %s to %s on %s is outside working hours.",
+                            reservation.getStartTime(),
+                            reservation.getEndTime(),
+                            reservation.getDate()
+                    )
+            );
+        }
     }
+
+    private void checkOverlap(List<Reservation> existing, Reservation reservation) {
+        boolean overlaps = existing.stream().anyMatch(
+                r -> reservation.getStartTime().isBefore(r.getEndTime()) &&
+                        reservation.getEndTime().isAfter(r.getStartTime())
+        );
+
+        if (overlaps) {
+            throw new IllegalArgumentException(
+                    String.format(
+                            "Reservation from %s to %s on %s overlaps with existing reservation.",
+                            reservation.getStartTime(),
+                            reservation.getEndTime(),
+                            reservation.getDate().toString()));
+        }
+    }
+
+    private void checkAvailableTimeSlots(Set<TimeSlotDTO> availableTimeSlots, Reservation reservation) {
+        boolean isAvailable = availableTimeSlots.stream().anyMatch(
+                slot -> !reservation.getStartTime().isBefore(slot.timeRange().start()) &&
+                        !reservation.getEndTime().isAfter(slot.timeRange().end()));
+
+        if (isAvailable) {
+            throw new IllegalArgumentException(
+                    String.format("Chosen time %s to %s for reservation on %s is not available.",
+                            reservation.getStartTime(),
+                            reservation.getEndTime(),
+                            reservation.getDate()
+                    ));
+        }
+    }
+
 }

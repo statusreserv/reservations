@@ -7,7 +7,7 @@ import com.statusreserv.reservations.mapper.ServiceProvidedMapper;
 import com.statusreserv.reservations.model.reservation.Reservation;
 import com.statusreserv.reservations.model.schedule.Schedule;
 import com.statusreserv.reservations.model.schedule.ScheduleTime;
-import com.statusreserv.reservations.model.service.ServiceProvided;
+import com.statusreserv.reservations.repository.service.ServiceProvided;
 import com.statusreserv.reservations.repository.ReservationRepository;
 import com.statusreserv.reservations.service.auth.CurrentUserService;
 import com.statusreserv.reservations.service.availability.AvailabilityServiceImpl;

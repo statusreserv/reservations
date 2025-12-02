@@ -3,7 +3,7 @@ package com.statusreserv.reservations.service.service;
 import com.statusreserv.reservations.dto.service.ServiceProvidedDTO;
 import com.statusreserv.reservations.dto.service.ServiceProvidedWrite;
 import com.statusreserv.reservations.mapper.ServiceProvidedMapper;
-import com.statusreserv.reservations.model.service.ServiceProvided;
+import com.statusreserv.reservations.repository.service.ServiceProvided;
 import com.statusreserv.reservations.repository.ServiceProvidedRepository;
 import com.statusreserv.reservations.service.auth.CurrentUserService;
 import jakarta.persistence.EntityNotFoundException;

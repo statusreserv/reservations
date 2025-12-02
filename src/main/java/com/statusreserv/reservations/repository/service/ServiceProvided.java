@@ -1,4 +1,4 @@
-package com.statusreserv.reservations.model.service;
+package com.statusreserv.reservations.repository.service;
 
 import com.statusreserv.reservations.model.tenant.Tenant;
 import jakarta.persistence.*;

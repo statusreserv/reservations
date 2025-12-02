@@ -1,19 +1,20 @@
 package com.statusreserv.reservations.dto.reservation;
 
 import com.statusreserv.reservations.model.reservation.Status;
+import jakarta.validation.constraints.NotNull;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
 public record ReservationDTO(
         UUID id,
+        @NotNull(message = "Reservation must have a date")
         LocalDate date,
+        @NotNull(message = "Reservation must have a start time")
         LocalTime startTime,
-        LocalTime endTime,
-        BigDecimal totalPrice,
         Status status,
-        Set<ReservationServiceProvidedDTO> reservationService
-) {}
+        List<UUID> reservationServices
+) {
+}

@@ -3,11 +3,14 @@ package com.statusreserv.reservations.service.reservation;
 import com.statusreserv.reservations.dto.reservation.ReservationDTO;
 import com.statusreserv.reservations.dto.reservation.ReservationWrite;
 import com.statusreserv.reservations.model.reservation.Reservation;
+import com.statusreserv.reservations.model.reservation.Status;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+@Service
 public interface ReservationService {
 
     List<ReservationDTO> findAll();
@@ -22,5 +25,5 @@ public interface ReservationService {
 
     void update(UUID id, ReservationWrite write);
 
-    void delete(UUID id);
+    void updateStatus(UUID id, Status status);
 }

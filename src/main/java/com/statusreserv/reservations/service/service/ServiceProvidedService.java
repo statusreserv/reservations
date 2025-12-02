@@ -2,7 +2,7 @@ package com.statusreserv.reservations.service.service;
 
 import com.statusreserv.reservations.dto.service.ServiceProvidedDTO;
 import com.statusreserv.reservations.dto.service.ServiceProvidedWrite;
-import com.statusreserv.reservations.model.service.ServiceProvided;
+import com.statusreserv.reservations.repository.service.ServiceProvided;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

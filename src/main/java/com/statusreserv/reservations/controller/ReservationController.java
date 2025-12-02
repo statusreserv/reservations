@@ -3,6 +3,7 @@ package com.statusreserv.reservations.controller;
 import com.statusreserv.reservations.dto.reservation.ReservationDTO;
 import com.statusreserv.reservations.dto.reservation.ReservationWrite;
 import com.statusreserv.reservations.service.reservation.ReservationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/reservation")
+@RequestMapping("/api/reservations")
 @RequiredArgsConstructor
 public class ReservationController {
     private final ReservationService reservationService;
@@ -27,19 +28,13 @@ public class ReservationController {
     }
 
     @PostMapping
-    public ResponseEntity<UUID> create(@RequestBody ReservationWrite write) {
+    public ResponseEntity<UUID> create(@Valid @RequestBody ReservationWrite write) {
         return ResponseEntity.ok(reservationService.create(write));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Void> update(@PathVariable UUID id, @RequestBody ReservationWrite write) {
         reservationService.update(id, write);
-        return ResponseEntity.noContent().build();
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        reservationService.delete(id);
         return ResponseEntity.noContent().build();
     }
 }
