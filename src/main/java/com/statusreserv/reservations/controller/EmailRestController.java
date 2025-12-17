@@ -1,10 +1,20 @@
 package com.statusreserv.reservations.controller;
 
-import com.statusreserv.reservations.service.email.sender.EmailSenderService;
+import com.statusreserv.reservations.model.customer.Customer;
+import com.statusreserv.reservations.model.email.EmailReservationTemplateCreatedRequest;
+import com.statusreserv.reservations.model.reservation.Reservation;
+import com.statusreserv.reservations.model.reservation.ReservationService;
+import com.statusreserv.reservations.service.email.create.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
+import java.util.UUID;
 
 import static com.statusreserv.reservations.constants.Endpoints.API;
 
@@ -13,18 +23,22 @@ import static com.statusreserv.reservations.constants.Endpoints.API;
 @RequiredArgsConstructor
 public class EmailRestController {
 
-    private final EmailSenderService emailSenderService;
+    private final EmailService emailService;
 
     @PostMapping("/sendNotification")
     public String sendNotification() {
-
-        emailSenderService.send(
-                "statusreserv@gmail.com",
-                "ricardomartins145@gmail.com",
-                "Urgente",
-                "Vou te roubar a conta bancaria hahahhahahah"
-        );
-
+        var services = List.of(new ReservationService().withName("Corte de cabelo"));
+        var customer = new Customer().withName("Francisco");
+        var reservation = new Reservation()
+                .withId(UUID.randomUUID())
+                .withDate(LocalDate.now())
+                .withStartTime(LocalTime.now())
+                .withTotalPrice(BigDecimal.TEN)
+                .withCustomer(customer)
+                .withEndTime(LocalTime.now().plusHours(1))
+                .withServices(services);
+        var emailTemplateRequest = new EmailReservationTemplateCreatedRequest("reiriocm@gmail.com","statusreserv@gmail.com", reservation);
+        emailService.create(emailTemplateRequest);
         return "Message queued";
     }
 }

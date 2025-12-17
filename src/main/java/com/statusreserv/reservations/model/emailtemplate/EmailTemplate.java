@@ -9,6 +9,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.With;
 
+import java.util.UUID;
+
 @Entity
 @Data
 @NoArgsConstructor
@@ -18,10 +20,11 @@ import lombok.With;
 public class EmailTemplate {
     @Id
     @GeneratedValue
-    private Long id;
+    private UUID id;
 
     private String subject;
 
+    @Column(columnDefinition = "TEXT")
     private String content;
 
     @Enumerated(EnumType.STRING)

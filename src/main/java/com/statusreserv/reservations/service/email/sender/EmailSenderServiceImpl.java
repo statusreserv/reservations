@@ -23,10 +23,10 @@ public class EmailSenderServiceImpl implements EmailSenderService {
     private final SesClient sesClient;
 
     @Override
-    public void send(String from, String to, String subject, String bodyHtml){
+    public void send(String sender, String recipient, String subject, String bodyHtml){
         try {
             var rawEmailRequest = SendRawEmailRequest.builder()
-                    .rawMessage(createRawMessage(createMimeMessage(from, to, subject, bodyHtml)))
+                    .rawMessage(createRawMessage(createMimeMessage(sender, recipient, subject, bodyHtml)))
                     .build();
 
             sesClient.sendRawEmail(rawEmailRequest);
