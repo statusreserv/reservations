@@ -28,31 +28,28 @@ public class ReservationValidator {
 
         reservation.getReservationServices().forEach(this::validateReservationServiceProvided);
 
-        int totalDuration = reservation.getReservationServices()
+        var totalDuration = reservation.getReservationServices()
                 .stream()
                 .mapToInt(ReservationServiceProvided::getDurationMinutes)
                 .sum();
 
-        List<Schedule> schedules = scheduleRepository.findByTenantIdAndDayOfWeek(reservation.getTenant().getId(), reservation.getDate().getDayOfWeek());
+        var schedules = scheduleRepository.findByTenantIdAndDayOfWeek(reservation.getTenant().getId(), reservation.getDate().getDayOfWeek());
 
         checkWithinSchedule(schedules, reservation);
 
-        //Searches BD for all the reservations on that day that are not the one we're trying to create(ignoredID)
-        List<Reservation> existing = reservationRepository.findByTenantIdAndDate(reservation.getTenant().getId(), reservation.getDate())
+        var existing = reservationRepository.findByTenantIdAndDate(reservation.getTenant().getId(), reservation.getDate())
                 .stream()
                 .filter(reservation1 -> !reservation1.getId().equals(ignoreId))
                 .toList();
 
         checkOverlap(existing, reservation);
 
-        //Creates a List of all the busyPeriods on that day
-        List<TimeRangeDTO> busyPeriods = existing
+        var busyPeriods = existing
                 .stream()
                 .map(reservation1 -> new TimeRangeDTO(reservation1.getStartTime(), reservation1.getEndTime()))
                 .toList();
 
-        //Creates a List of availableTimeSlots that are ok to create the reservation
-        Set<TimeSlotDTO> availableTimeSlots = availabilityService.getAvailableTimeSlots(
+        var availableTimeSlots = availabilityService.getAvailableTimeSlots(
                 Map.of(reservation.getDate(), busyPeriods),
                 totalDuration
         );
@@ -74,7 +71,7 @@ public class ReservationValidator {
     }
 
     private void checkWithinSchedule(List<Schedule> schedules, Reservation reservation) {
-        boolean withinSchedule = schedules.stream().anyMatch(
+        var withinSchedule = schedules.stream().anyMatch(
                 schedule -> schedule.getScheduleTime().stream().anyMatch(
                         scheduleTime -> !reservation.getStartTime().isBefore(scheduleTime.getOpenTime()) &&
                                 !reservation.getEndTime().isAfter(scheduleTime.getCloseTime())));
@@ -93,7 +90,7 @@ public class ReservationValidator {
     }
 
     private void checkOverlap(List<Reservation> existing, Reservation reservation) {
-        boolean overlaps = existing.stream().anyMatch(
+        var overlaps = existing.stream().anyMatch(
                 r -> reservation.getStartTime().isBefore(r.getEndTime()) &&
                         reservation.getEndTime().isAfter(r.getStartTime())
         );
@@ -109,7 +106,7 @@ public class ReservationValidator {
     }
 
     private void checkAvailableTimeSlots(Set<TimeSlotDTO> availableTimeSlots, Reservation reservation) {
-        boolean isAvailable = availableTimeSlots.stream().anyMatch(
+        var isAvailable = availableTimeSlots.stream().anyMatch(
                 slot -> !reservation.getStartTime().isBefore(slot.timeRange().start()) &&
                         !reservation.getEndTime().isAfter(slot.timeRange().end()));
 

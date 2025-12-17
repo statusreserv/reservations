@@ -23,7 +23,5 @@ public interface ReservationService {
 
     UUID create(ReservationWrite write);
 
-    void update(UUID id, ReservationWrite write);
-
     void updateStatus(UUID id, Status status);
 }

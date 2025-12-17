@@ -45,27 +45,28 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     public Reservation getById(UUID id) {
-        return repository.findByIdAndTenantId(id, currentUserService.getCurrentTenantId()).orElseThrow(() -> new EntityNotFoundException("Reservation not found"));
+        return repository.findByIdAndTenantId(id, currentUserService.getCurrentTenantId())
+                .orElseThrow(() -> new EntityNotFoundException("Reservation not found"));
     }
 
     @Transactional
     public UUID create(ReservationWrite write) {
         var reservation = mapper.toEntity(write, currentUserService.getCurrentTenant());
-        var reservationService = getServiceProvidedService(serviceProvidedService.findByIdIn(write.serviceProvidedIds()));
+        var reservationServiceList = getServiceProvidedService(serviceProvidedService.findByIdIn(write.serviceProvidedIds()));
 
-        for (ReservationServiceProvided rs : reservationService) rs.setReservation(reservation);
-        reservation.setReservationServices(reservationService);
+        for (ReservationServiceProvided rs : reservationServiceList) rs.setReservation(reservation);
+        reservation.setReservationServices(reservationServiceList);
 
-        if (reservationService.isEmpty()) {
+        if (reservationServiceList.isEmpty()) {
             throw new IllegalArgumentException("No services found for the provided IDs");
         }
 
-        int totalDuration = reservationService
+        var totalDuration = reservationServiceList
                 .stream()
                 .mapToInt(ReservationServiceProvided::getDurationMinutes)
                 .sum();
 
-        BigDecimal totalPrice = reservationService
+        var totalPrice = reservationServiceList
                 .stream()
                 .map(ReservationServiceProvided::getPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -77,21 +78,6 @@ public class ReservationServiceImpl implements ReservationService {
         var entity = repository.save(reservation);
         validator.validateReservation(entity, entity.getId());
         return entity.getId();
-    }
-
-    @Transactional
-    public void update(UUID id, ReservationWrite write) {
-        var existing = getById(id);
-
-        var reservationService = getServiceProvidedService(serviceProvidedService.findByIdIn(write.serviceProvidedIds()));
-
-        reservationService.forEach(rs -> rs.setReservation(existing));
-
-        existing.setReservationServices(reservationService);
-        existing.setDate(write.date());
-        existing.setStartTime(write.startTime());
-
-        repository.save(existing);
     }
 
     @Transactional

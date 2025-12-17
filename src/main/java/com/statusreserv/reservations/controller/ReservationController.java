@@ -32,9 +32,4 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.create(write));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Void> update(@PathVariable UUID id, @RequestBody ReservationWrite write) {
-        reservationService.update(id, write);
-        return ResponseEntity.noContent().build();
-    }
 }
