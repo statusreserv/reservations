@@ -2,7 +2,7 @@ package com.statusreserv.reservations.mapper;
 
 import com.statusreserv.reservations.dto.service.ServiceProvidedDTO;
 import com.statusreserv.reservations.dto.service.ServiceProvidedWrite;
-import com.statusreserv.reservations.model.service.ServiceProvided;
+import com.statusreserv.reservations.repository.service.ServiceProvided;
 import com.statusreserv.reservations.model.tenant.Tenant;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

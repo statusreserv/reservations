@@ -1,0 +1,35 @@
+package com.statusreserv.reservations.controller;
+
+import com.statusreserv.reservations.dto.reservation.ReservationDTO;
+import com.statusreserv.reservations.dto.reservation.ReservationWrite;
+import com.statusreserv.reservations.service.reservation.ReservationService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/reservations")
+@RequiredArgsConstructor
+public class ReservationController {
+    private final ReservationService reservationService;
+
+    @GetMapping
+    public ResponseEntity<List<ReservationDTO>> getAll() {
+        return ResponseEntity.ok(reservationService.findAll());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ReservationDTO> getById(@PathVariable UUID id) {
+        return ResponseEntity.ok(reservationService.findReservation(id));
+    }
+
+    @PostMapping
+    public ResponseEntity<UUID> create(@Valid @RequestBody ReservationWrite write) {
+        return ResponseEntity.ok(reservationService.create(write));
+    }
+
+}

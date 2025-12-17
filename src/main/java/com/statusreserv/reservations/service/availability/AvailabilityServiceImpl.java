@@ -8,7 +8,7 @@ import com.statusreserv.reservations.mapper.ServiceProvidedMapper;
 import com.statusreserv.reservations.model.reservation.Reservation;
 import com.statusreserv.reservations.model.reservation.Status;
 import com.statusreserv.reservations.model.schedule.Schedule;
-import com.statusreserv.reservations.model.service.ServiceProvided;
+import com.statusreserv.reservations.repository.service.ServiceProvided;
 import com.statusreserv.reservations.repository.ReservationRepository;
 import com.statusreserv.reservations.service.auth.CurrentUserService;
 import com.statusreserv.reservations.service.schedule.ScheduleService;
@@ -106,10 +106,16 @@ public class AvailabilityServiceImpl implements AvailabilityService {
             var dayReservations = reservationsByDate.getOrDefault(date, List.of());
 
             for (TimeRangeDTO range : dayPeriods) {
+                if(!range.start().isBefore(range.end())) {
+                    System.out.println("Skipping invalid time range: " + range);
+                    continue;
+                }
+
                 LocalTime start = range.start();
                 LocalTime end = range.end();
 
                 while (!start.plusMinutes(durationMinutes).isAfter(end)) {
+
                     var slotEnd = start.plusMinutes(durationMinutes);
                     var finalCursor = start;
 
