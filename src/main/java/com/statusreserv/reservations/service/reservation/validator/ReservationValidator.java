@@ -1,4 +1,4 @@
-package com.statusreserv.reservations.service.reservation;
+package com.statusreserv.reservations.service.reservation.validator;
 
 import com.statusreserv.reservations.dto.availability.TimeRangeDTO;
 import com.statusreserv.reservations.dto.availability.TimeSlotDTO;
@@ -94,7 +94,7 @@ public class ReservationValidator {
         }
     }
 
-    private void checkOverlap(List<Reservation> existing, Reservation reservation) {
+    public void checkOverlap(List<Reservation> existing, Reservation reservation) {
         var overlaps = existing.stream().anyMatch(
                 r -> reservation.getStartTime().isBefore(r.getEndTime()) &&
                         reservation.getEndTime().isAfter(r.getStartTime())
