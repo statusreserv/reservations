@@ -8,13 +8,55 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
+/**
+ * Component responsible for validating reservation cancellations.
+ *
+ * <p>This validator checks whether a reservation can be cancelled according to
+ * business rules and tenant-specific configurations. It supports both normal
+ * and forced cancellations.
+ *
+ * <p>Validation rules include:
+ * <ul>
+ *     <li>Status change validation via {@link ReservationStatusValidator}</li>
+ *     <li>Reservation start date/time validation</li>
+ *     <li>Minimum days before cancellation rules based on tenant configuration</li>
+ * </ul>
+ */
 @Component
 @RequiredArgsConstructor
 public class CancellationValidator {
 
     private final ReservationStatusValidator validator;
 
-    public void validateCancellation(Reservation reservation) {
+    /**
+     * Validates if a reservation can be cancelled.
+     *
+     * <p>If {@code force} is true, only basic status change validation is applied.
+     * Otherwise, all normal cancellation rules are enforced.
+     *
+     * @param reservation the reservation to validate
+     * @param force       whether to force the cancellation (bypass some rules)
+     *
+     * @throws RuntimeException if the cancellation is not allowed
+     */
+    public void validateCancellation(Reservation reservation, boolean force) {
+        if (force) {
+            validateForceCancellation(reservation);
+        } else {
+            validateNormalCancellation(reservation);
+        }
+    }
+
+    /**
+     * Performs normal cancellation validations.
+     *
+     * <p>Checks status change, reservation not started, and minimum days before cancellation.
+     *
+     * @param reservation the reservation to validate
+     *
+     * @throws RuntimeException if the cancellation is not allowed
+     */
+    private void validateNormalCancellation(Reservation reservation) {
         validator.validateStatusChange(reservation, Status.CANCELLED);
 
         if (reservation.getStatus().equals(Status.CONFIRMED)) {
@@ -27,6 +69,26 @@ public class CancellationValidator {
         }
     }
 
+    /**
+     * Performs forced cancellation validation.
+     *
+     * <p>Only validates that the status can be changed to {@link Status#CANCELLED}.
+     *
+     * @param reservation the reservation to validate
+     *
+     * @throws RuntimeException if the status change is not allowed
+     */
+    private void validateForceCancellation(Reservation reservation) {
+        validator.validateStatusChange(reservation, Status.CANCELLED);
+    }
+
+    /**
+     * Validates that the reservation has not started yet.
+     *
+     * @param reservation the reservation to validate
+     *
+     * @throws RuntimeException if the reservation has already started
+     */
     private void validateReservationNotStarted(Reservation reservation) {
         LocalDateTime reservationDateTime = reservation.getDate().atTime(reservation.getStartTime());
         if (reservationDateTime.isBefore(LocalDateTime.now())) {
@@ -34,6 +96,13 @@ public class CancellationValidator {
         }
     }
 
+    /**
+     * Validates if the cancellation meets the minimum days requirement defined by the tenant.
+     *
+     * @param reservation the reservation to validate
+     *
+     * @throws RuntimeException if the cancellation is attempted too close to the reservation date
+     */
     private void validateMinDaysBeforeCancellation(Reservation reservation) {
         Integer minDaysBeforeCancellation = reservation.getTenant().getConfigSet()
                 .stream()
