@@ -1,7 +1,7 @@
 package com.statusreserv.reservations.service.reservation;
 
 import com.statusreserv.reservations.model.reservation.Reservation;
-import com.statusreserv.reservations.model.reservation.Status;
+import com.statusreserv.reservations.model.reservation.ReservationStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +22,7 @@ public class ReservationStatusValidator {
      *
      * @throws RuntimeException if the status change is not allowed
      */
-    public void validateStatusChange(Reservation reservation, Status targetStatus) {
+    public void validateStatusChange(Reservation reservation, ReservationStatus targetStatus) {
         switch (targetStatus) {
             case CANCELLED -> validateCancellation(reservation);
             // Future states can be added here if needed
@@ -39,11 +39,15 @@ public class ReservationStatusValidator {
      * @throws RuntimeException if the reservation cannot be cancelled
      */
     public void validateCancellation(Reservation reservation) {
-        if (reservation.getStatus().equals(Status.CANCELLED)) {
+        if (reservation.getStatus().equals(ReservationStatus.CANCELLED)) {
             throw new RuntimeException("Reservation cannot be cancelled again");
         }
 
-        if (reservation.getStatus().equals(Status.COMPLETED)) {
+        if (reservation.getStatus().equals(ReservationStatus.EXPIRED)) {
+            throw new RuntimeException("Reservation cannot be cancelled after expired");
+        }
+
+        if (reservation.getStatus().equals(ReservationStatus.COMPLETED)) {
             throw new RuntimeException("Reservation cannot be cancelled after completed");
         }
     }

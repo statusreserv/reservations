@@ -1,6 +1,6 @@
 package com.statusreserv.reservations.dto.reservation;
 
-import com.statusreserv.reservations.model.reservation.Status;
+import com.statusreserv.reservations.model.reservation.ReservationStatus;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -11,7 +11,7 @@ public record ReservationDTO(
         UUID id,
         LocalDate date,
         LocalTime startTime,
-        Status status,
+        ReservationStatus status,
         List<UUID> reservationServices
 ) {
 }

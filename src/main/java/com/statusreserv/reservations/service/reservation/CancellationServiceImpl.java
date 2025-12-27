@@ -1,6 +1,6 @@
 package com.statusreserv.reservations.service.reservation;
 
-import com.statusreserv.reservations.model.reservation.Status;
+import com.statusreserv.reservations.model.reservation.ReservationStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +14,7 @@ import java.util.UUID;
  * <ul>
  *   <li>retrieving the reservation</li>
  *   <li>validating whether cancellation is allowed</li>
- *   <li>updating the reservation status to {@link Status#CANCELLED}</li>
+ *   <li>updating the reservation status to {@link ReservationStatus#CANCELLED}</li>
  * </ul>
  *
  * <p>Business validation rules are delegated to {@link CancellationValidator}.
@@ -47,6 +47,6 @@ public class CancellationServiceImpl implements CancellationService {
 
         cancellationValidator.validateCancellation(reservation, force);
 
-        reservationService.updateStatus(id, Status.CANCELLED);
+        reservationService.updateStatus(id, ReservationStatus.CANCELLED);
     }
 }

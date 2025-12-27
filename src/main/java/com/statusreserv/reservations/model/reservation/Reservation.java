@@ -32,7 +32,7 @@ public class Reservation {
     private BigDecimal totalPrice;
 
     @Enumerated(EnumType.STRING)
-    private Status status = Status.PENDING;
+    private ReservationStatus status = ReservationStatus.PENDING;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Customer customer;

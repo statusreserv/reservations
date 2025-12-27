@@ -1,7 +1,7 @@
 package com.statusreserv.reservations.service.reservation;
 
 import com.statusreserv.reservations.model.reservation.Reservation;
-import com.statusreserv.reservations.model.reservation.Status;
+import com.statusreserv.reservations.model.reservation.ReservationStatus;
 import com.statusreserv.reservations.model.tenant.TenantConfigType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -57,14 +57,14 @@ public class CancellationValidator {
      * @throws RuntimeException if the cancellation is not allowed
      */
     private void validateNormalCancellation(Reservation reservation) {
-        validator.validateStatusChange(reservation, Status.CANCELLED);
+        validator.validateStatusChange(reservation, ReservationStatus.CANCELLED);
 
-        if (reservation.getStatus().equals(Status.CONFIRMED)) {
+        if (reservation.getStatus().equals(ReservationStatus.CONFIRMED)) {
             validateReservationNotStarted(reservation);
             validateMinDaysBeforeCancellation(reservation);
         }
 
-        if (reservation.getStatus().equals(Status.PENDING)) {
+        if (reservation.getStatus().equals(ReservationStatus.PENDING)) {
             validateReservationNotStarted(reservation);
         }
     }
@@ -72,14 +72,14 @@ public class CancellationValidator {
     /**
      * Performs forced cancellation validation.
      *
-     * <p>Only validates that the status can be changed to {@link Status#CANCELLED}.
+     * <p>Only validates that the status can be changed to {@link ReservationStatus#CANCELLED}.
      *
      * @param reservation the reservation to validate
      *
      * @throws RuntimeException if the status change is not allowed
      */
     private void validateForceCancellation(Reservation reservation) {
-        validator.validateStatusChange(reservation, Status.CANCELLED);
+        validator.validateStatusChange(reservation, ReservationStatus.CANCELLED);
     }
 
     /**
