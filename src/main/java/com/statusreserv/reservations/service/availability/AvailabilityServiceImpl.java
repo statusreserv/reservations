@@ -23,16 +23,36 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Implementation of {@link AvailabilityService} responsible for calculating
+ * available reservation slots.
+ *
+ * <p>Availability is computed considering:
+ * <ul>
+ *     <li>Operating schedules (via {@link ScheduleService})</li>
+ *     <li>Existing reservations (via {@link ReservationRepository})</li>
+ *     <li>Total duration of selected services (via {@link ServiceProvidedService})</li>
+ * </ul>
+ *
+ * <p>The current tenant is resolved using {@link CurrentUserService}, and service
+ * details are mapped with {@link ServiceProvidedMapper}.
+ */
 @Service
 @RequiredArgsConstructor
 public class AvailabilityServiceImpl implements AvailabilityService {
 
     private final ServiceProvidedService serviceProvidedService;
-    private final ReservationRepository reservationRepository;// TODO: Replace with service when ready
+    private final ReservationRepository reservationRepository;
     private final CurrentUserService currentUserService;
     private final ScheduleService scheduleService;
     private final ServiceProvidedMapper serviceProvidedMapper;
 
+    /**
+     * Finds available reservation slots for the given request.
+     *
+     * @param request DTO containing the date range and selected service IDs
+     * @return {@link AvailabilityDTO} with available time slots and corresponding services
+     */
     @Override
     public AvailabilityDTO findAvailability(AvailabilityRequestDTO request) {
         var services = serviceProvidedService.findByIdIn(request.services());
@@ -49,8 +69,10 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     }
 
     /**
-     * Builds a map of working time ranges for each date,
-     * based on the existing schedules for the tenant.
+     * Constructs a map of operating periods by date based on existing schedules.
+     *
+     * @param dates list of dates to compute periods for
+     * @return map with {@link LocalDate} as key and {@link List} of {@link TimeRangeDTO} as value
      */
     public Map<LocalDate, List<TimeRangeDTO>> getPeriods(List<LocalDate> dates) {
         var schedules = scheduleService.getAll();
@@ -78,8 +100,12 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     }
 
     /**
-     * Calculates all available time slots for each date,
-     * considering reservations and total service duration.
+     * Computes available time slots based on operating periods, existing reservations,
+     * and desired duration.
+     *
+     * @param periods map of dates to operating periods
+     * @param durationMinutes total duration of selected services in minutes
+     * @return set of {@link TimeSlotDTO} representing available slots
      */
     public Set<TimeSlotDTO> getAvailableTimeSlots(Map<LocalDate, List<TimeRangeDTO>> periods, int durationMinutes) {
         if (periods.isEmpty()) return Set.of();
@@ -105,17 +131,10 @@ public class AvailabilityServiceImpl implements AvailabilityService {
             var dayPeriods = entry.getValue();
             var dayReservations = reservationsByDate.getOrDefault(date, List.of());
 
-            for (TimeRangeDTO range : dayPeriods) {
-                if(!range.start().isBefore(range.end())) {
-                    System.out.println("Skipping invalid time range: " + range);
-                    continue;
-                }
-
-                LocalTime start = range.start();
-                LocalTime end = range.end();
+            for (TimeRangeDTO(LocalTime start, LocalTime end) : dayPeriods) {
+                if (!start.isBefore(end)) continue;
 
                 while (!start.plusMinutes(durationMinutes).isAfter(end)) {
-
                     var slotEnd = start.plusMinutes(durationMinutes);
                     var finalCursor = start;
 
@@ -131,17 +150,19 @@ public class AvailabilityServiceImpl implements AvailabilityService {
                     start = start.plusMinutes(durationMinutes);
                 }
             }
-
         }
 
-       return availableSlots.stream().sorted(
+        return availableSlots.stream().sorted(
                 Comparator.comparing(TimeSlotDTO::date)
                         .thenComparing(slot -> slot.timeRange().start())
         ).collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     /**
-     * Calculates the total duration of all selected services.
+     * Calculates total duration of all selected services.
+     *
+     * @param serviceProvidedList list of selected services
+     * @return total duration in minutes
      */
     private int getTotalDuration(List<ServiceProvided> serviceProvidedList) {
         return serviceProvidedList.stream()
@@ -150,7 +171,11 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     }
 
     /**
-     * Generates a list of dates between two given dates (inclusive).
+     * Generates a list of dates between two dates (inclusive).
+     *
+     * @param startDate start date
+     * @param endDate end date
+     * @return list of {@link LocalDate} between startDate and endDate
      */
     private List<LocalDate> getDatesBetween(LocalDate startDate, LocalDate endDate) {
         return Stream.iterate(startDate, date -> date.plusDays(1))
