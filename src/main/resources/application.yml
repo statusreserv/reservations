@@ -19,8 +19,8 @@ spring:
 
 
 aws:
-  accessKey: AKIA4F2I5BLOWQYN6XHI
-  secretKey: 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
+  accessKey: ${AWS_ACCESS_KEY}
+  secretKey: ${AWS_SECRET_KEY}
   region: eu-north-1
 
 cors:
