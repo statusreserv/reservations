@@ -6,4 +6,5 @@ package com.statusreserv.reservations.constants;
 public enum ValidatorType {
     CANCEL,
     CONFIRM,
+    COMPLETE
 }
