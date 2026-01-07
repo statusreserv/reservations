@@ -1,6 +1,6 @@
 package com.statusreserv.reservations.repository;
 
-import com.statusreserv.reservations.model.service.ServiceProvided;
+import com.statusreserv.reservations.repository.service.ServiceProvided;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
