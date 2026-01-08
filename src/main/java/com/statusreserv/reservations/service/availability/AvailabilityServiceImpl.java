@@ -131,7 +131,9 @@ public class AvailabilityServiceImpl implements AvailabilityService {
             var dayPeriods = entry.getValue();
             var dayReservations = reservationsByDate.getOrDefault(date, List.of());
 
-            for (TimeRangeDTO(LocalTime start, LocalTime end) : dayPeriods) {
+            for (var dayPeriod : dayPeriods) {
+                var start = dayPeriod.start();
+                var end = dayPeriod.end();
                 if (!start.isBefore(end)) continue;
 
                 while (!start.plusMinutes(durationMinutes).isAfter(end)) {
