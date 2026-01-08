@@ -3,7 +3,7 @@ package com.statusreserv.reservations.service.reservation;
 import com.statusreserv.reservations.dto.reservation.ReservationDTO;
 import com.statusreserv.reservations.dto.reservation.ReservationWrite;
 import com.statusreserv.reservations.model.reservation.Reservation;
-import com.statusreserv.reservations.model.reservation.Status;
+import com.statusreserv.reservations.model.reservation.ReservationStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -60,5 +60,5 @@ public interface ReservationService {
      * @param id UUID of the reservation
      * @param status New status to set
      */
-    void updateStatus(UUID id, Status status);
+    void updateStatus(UUID id, ReservationStatus status);
 }

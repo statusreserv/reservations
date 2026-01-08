@@ -5,7 +5,7 @@ import com.statusreserv.reservations.dto.reservation.ReservationWrite;
 import com.statusreserv.reservations.mapper.ReservationMapper;
 import com.statusreserv.reservations.model.reservation.Reservation;
 import com.statusreserv.reservations.model.reservation.ReservationServiceProvided;
-import com.statusreserv.reservations.model.reservation.Status;
+import com.statusreserv.reservations.model.reservation.ReservationStatus;
 import com.statusreserv.reservations.repository.ReservationRepository;
 import com.statusreserv.reservations.repository.service.ServiceProvided;
 import com.statusreserv.reservations.service.auth.CurrentUserService;
@@ -84,7 +84,7 @@ public class ReservationServiceImpl implements ReservationService {
      * Creates a new reservation with the provided data.
      *
      * <p>Associates services provided, calculates total price and duration,
-     * sets the reservation status to {@link Status#PENDING}, and validates business rules.
+     * sets the reservation status to {@link ReservationStatus#PENDING}, and validates business rules.
      *
      * @param write the data to create the reservation
      * @return the UUID of the newly created reservation
@@ -114,7 +114,7 @@ public class ReservationServiceImpl implements ReservationService {
 
         reservation.setEndTime(reservation.getStartTime().plusMinutes(totalDuration));
         reservation.setTotalPrice(totalPrice);
-        reservation.setStatus(Status.PENDING);
+        reservation.setStatus(ReservationStatus.PENDING);
 
         var entity = repository.save(reservation);
         validator.validateReservation(entity, entity.getId());
@@ -129,7 +129,7 @@ public class ReservationServiceImpl implements ReservationService {
      * @throws EntityNotFoundException if no reservation exists with the given ID
      */
     @Transactional
-    public void updateStatus(UUID id, Status status) {
+    public void updateStatus(UUID id, ReservationStatus status) {
         var existing = getById(id);
         existing.setStatus(status);
         repository.save(existing);

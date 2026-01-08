@@ -6,7 +6,7 @@ import com.statusreserv.reservations.dto.availability.TimeRangeDTO;
 import com.statusreserv.reservations.dto.availability.TimeSlotDTO;
 import com.statusreserv.reservations.mapper.ServiceProvidedMapper;
 import com.statusreserv.reservations.model.reservation.Reservation;
-import com.statusreserv.reservations.model.reservation.Status;
+import com.statusreserv.reservations.model.reservation.ReservationStatus;
 import com.statusreserv.reservations.model.schedule.Schedule;
 import com.statusreserv.reservations.repository.service.ServiceProvided;
 import com.statusreserv.reservations.repository.ReservationRepository;
@@ -113,7 +113,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         var startDate = periods.keySet().stream().min(LocalDate::compareTo).orElseThrow();
         var endDate = periods.keySet().stream().max(LocalDate::compareTo).orElseThrow();
 
-        var statuses = Set.of(Status.COMPLETED, Status.PENDING, Status.CONFIRMED);
+        var statuses = Set.of(ReservationStatus.COMPLETED, ReservationStatus.PENDING, ReservationStatus.CONFIRMED);
         var reservations = reservationRepository.findByDateBetweenAndStatusInAndTenantId(
                 startDate,
                 endDate,
@@ -131,7 +131,9 @@ public class AvailabilityServiceImpl implements AvailabilityService {
             var dayPeriods = entry.getValue();
             var dayReservations = reservationsByDate.getOrDefault(date, List.of());
 
-            for (TimeRangeDTO(LocalTime start, LocalTime end) : dayPeriods) {
+            for (var dayPeriod : dayPeriods) {
+                var start = dayPeriod.start();
+                var end = dayPeriod.end();
                 if (!start.isBefore(end)) continue;
 
                 while (!start.plusMinutes(durationMinutes).isAfter(end)) {
