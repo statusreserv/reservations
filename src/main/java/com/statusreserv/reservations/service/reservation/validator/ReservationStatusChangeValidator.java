@@ -26,6 +26,7 @@ public class ReservationStatusChangeValidator {
         switch (targetStatus) {
             case CANCELLED -> validateCancellation(reservation);
             case CONFIRMED -> validateConfirmation(reservation);
+            case COMPLETED -> validateCompletion(reservation);
         }
     }
 
@@ -75,6 +76,24 @@ public class ReservationStatusChangeValidator {
         }
 
         if (reservation.getStatus().equals(ReservationStatus.CONFIRMED)) {
+            throw new RuntimeException("Reservation cannot be confirmed again");
+        }
+    }
+
+    private void validateCompletion(Reservation reservation) {
+        if (reservation.getStatus().equals(ReservationStatus.CANCELLED)) {
+            throw new RuntimeException("Reservation cannot be confirmed after cancelled");
+        }
+
+        if (reservation.getStatus().equals(ReservationStatus.EXPIRED)) {
+            throw new RuntimeException("Reservation cannot be confirmed after expired");
+        }
+
+        if (reservation.getStatus().equals(ReservationStatus.PENDING)) {
+            throw new RuntimeException("Reservation cannot be completed after pending");
+        }
+
+        if (reservation.getStatus().equals(ReservationStatus.COMPLETED)) {
             throw new RuntimeException("Reservation cannot be confirmed again");
         }
     }

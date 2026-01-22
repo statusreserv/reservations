@@ -6,6 +6,7 @@ import com.statusreserv.reservations.mapper.ReservationMapper;
 import com.statusreserv.reservations.model.reservation.Reservation;
 import com.statusreserv.reservations.model.reservation.ReservationServiceProvided;
 import com.statusreserv.reservations.model.reservation.ReservationStatus;
+import com.statusreserv.reservations.model.tenant.TenantConfigType;
 import com.statusreserv.reservations.repository.ReservationRepository;
 import com.statusreserv.reservations.repository.service.ServiceProvided;
 import com.statusreserv.reservations.service.auth.CurrentUserService;
@@ -39,6 +40,7 @@ public class ReservationServiceImpl implements ReservationService {
     private final CurrentUserService currentUserService;
     private final ReservationValidator validator;
     private final ServiceProvidedService serviceProvidedService;
+    private final ConfirmationService confirmationService;
 
     /**
      * Retrieves all reservations for the current tenant.
@@ -119,7 +121,30 @@ public class ReservationServiceImpl implements ReservationService {
 
         var entity = repository.save(reservation);
         validator.validateReservation(entity, entity.getId());
+
+        if (hasAutoConfirmationEnabled()) confirmationService.confirmReservation(entity.getId(), false);
+
         return entity.getId();
+    }
+
+    /**
+     * Checks if the "auto confirmation" setting is enabled for the current tenant.
+     *
+     * <p>This method retrieves the current tenant from {@link currentUserService#getCurrentTenant()},
+     * then streams through its configuration set, filters for the property
+     * {@link TenantConfigType#AUTO_CONFIRMATION_ENABLED}, and returns {@code true} if the value
+     * is set to {@code "true"} (as a string), or {@code false} otherwise.
+     *
+     * @return {@code true} if the auto confirmation setting is enabled;
+     *         {@code false} if it is disabled or the configuration does not exist.
+     */
+    private boolean hasAutoConfirmationEnabled() {
+       return currentUserService.getCurrentTenant().getConfigSet()
+                .stream()
+                .filter(el -> el.getProperty().equals(TenantConfigType.AUTO_CONFIRMATION_ENABLED))
+                .findFirst()
+                .map(el -> el.getValue().equals(Boolean.TRUE.toString()))
+                .orElse(false);
     }
 
     /**

@@ -16,10 +16,12 @@ public class ReservationStatusValidatorFactory {
 
     public ReservationStatusValidatorFactory(
             CancellationValidator cancelReservationValidator,
-            ConfirmationValidator confirmReservationValidator) {
+            ConfirmationValidator confirmReservationValidator,
+            CompletionValidator completionValidator) {
         this.validators = Map.of(
                 ValidatorType.CANCEL, cancelReservationValidator,
-                ValidatorType.CONFIRM, confirmReservationValidator
+                ValidatorType.CONFIRM, confirmReservationValidator,
+                ValidatorType.COMPLETE, completionValidator
         );
     }
 

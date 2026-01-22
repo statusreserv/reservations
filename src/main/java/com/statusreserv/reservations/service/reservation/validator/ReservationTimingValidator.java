@@ -22,6 +22,24 @@ import java.time.LocalDateTime;
 public class ReservationTimingValidator {
 
     /**
+     * Validates if the reservation has already ended.
+     *
+     * <p>This method checks whether the reservation's end time is in the past.
+     * If the reservation has already ended, an exception is thrown.</p>
+     *
+     * @param reservation the reservation being validated
+     *
+     * @throws RuntimeException if the reservation has already ended
+     */
+    public void validateReservationAlreadyEnded(Reservation reservation) {
+        var reservationEnd = reservation.getDate().atTime(reservation.getEndTime());
+
+        if (reservationEnd.isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("The reservation has already ended.");
+        }
+    }
+
+    /**
      * Validates that the reservation has not already started.
      *
      * <p>The validation compares the current timestamp with the reservation start.</p>
@@ -31,7 +49,7 @@ public class ReservationTimingValidator {
      * @throws RuntimeException if the reservation has already started
      */
     public void validateReservationNotStarted(Reservation reservation) {
-        LocalDateTime reservationDateTime =
+        var reservationDateTime =
                 reservation.getDate().atTime(reservation.getStartTime());
 
         if (reservationDateTime.isBefore(LocalDateTime.now())) {
@@ -55,7 +73,7 @@ public class ReservationTimingValidator {
     public void validateMinDaysBefore(Reservation reservation,
                                        TenantConfigType tenantConfigType) {
 
-        Integer minDaysBefore = reservation.getTenant().getConfigSet()
+        var minDaysBefore = reservation.getTenant().getConfigSet()
                 .stream()
                 .filter(config -> config.getProperty().equals(tenantConfigType))
                 .findFirst()
@@ -63,7 +81,7 @@ public class ReservationTimingValidator {
                 .orElse(null);
 
         if (minDaysBefore != null) {
-            LocalDateTime earliestAllowedDate =
+            var earliestAllowedDate =
                     reservation.getDate().atStartOfDay()
                             .minusDays(minDaysBefore);
 
