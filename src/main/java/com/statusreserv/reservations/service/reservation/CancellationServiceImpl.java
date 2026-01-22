@@ -1,6 +1,9 @@
 package com.statusreserv.reservations.service.reservation;
 
+import com.statusreserv.reservations.constants.ValidatorType;
 import com.statusreserv.reservations.model.reservation.ReservationStatus;
+import com.statusreserv.reservations.service.reservation.validator.CancellationValidator;
+import com.statusreserv.reservations.service.reservation.validator.ReservationStatusValidatorFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +27,7 @@ import java.util.UUID;
 public class CancellationServiceImpl implements CancellationService {
 
     private final ReservationService reservationService;
-    private final CancellationValidator cancellationValidator;
+    private final ReservationStatusValidatorFactory statusValidatorFactory;
 
     /**
      * Cancels the reservation identified by the given ID.
@@ -42,11 +45,8 @@ public class CancellationServiceImpl implements CancellationService {
     @Override
     @Transactional
     public void cancelReservation(UUID id, boolean force) {
-
         var reservation = reservationService.getById(id);
-
-        cancellationValidator.validateCancellation(reservation, force);
-
+        statusValidatorFactory.getValidator(ValidatorType.CANCEL).validate(reservation, force);
         reservationService.updateStatus(id, ReservationStatus.CANCELLED);
     }
 }

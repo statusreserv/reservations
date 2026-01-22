@@ -9,6 +9,7 @@ import com.statusreserv.reservations.model.reservation.ReservationStatus;
 import com.statusreserv.reservations.repository.ReservationRepository;
 import com.statusreserv.reservations.repository.service.ServiceProvided;
 import com.statusreserv.reservations.service.auth.CurrentUserService;
+import com.statusreserv.reservations.service.reservation.validator.ReservationValidator;
 import com.statusreserv.reservations.service.service.ServiceProvidedService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;

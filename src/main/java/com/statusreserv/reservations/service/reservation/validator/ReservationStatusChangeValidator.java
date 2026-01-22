@@ -1,4 +1,4 @@
-package com.statusreserv.reservations.service.reservation;
+package com.statusreserv.reservations.service.reservation.validator;
 
 import com.statusreserv.reservations.model.reservation.Reservation;
 import com.statusreserv.reservations.model.reservation.ReservationStatus;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class ReservationStatusValidator {
+public class ReservationStatusChangeValidator {
 
     /**
      * Validates whether a reservation can be changed to the given target status.
@@ -25,7 +25,7 @@ public class ReservationStatusValidator {
     public void validateStatusChange(Reservation reservation, ReservationStatus targetStatus) {
         switch (targetStatus) {
             case CANCELLED -> validateCancellation(reservation);
-            // Future states can be added here if needed
+            case CONFIRMED -> validateConfirmation(reservation);
         }
     }
 
@@ -38,7 +38,7 @@ public class ReservationStatusValidator {
      *
      * @throws RuntimeException if the reservation cannot be cancelled
      */
-    public void validateCancellation(Reservation reservation) {
+    private void validateCancellation(Reservation reservation) {
         if (reservation.getStatus().equals(ReservationStatus.CANCELLED)) {
             throw new RuntimeException("Reservation cannot be cancelled again");
         }
@@ -49,6 +49,33 @@ public class ReservationStatusValidator {
 
         if (reservation.getStatus().equals(ReservationStatus.COMPLETED)) {
             throw new RuntimeException("Reservation cannot be cancelled after completed");
+        }
+    }
+
+    /**
+     * Validates that a reservation can be cancelled.
+     *
+     * <p>A reservation cannot be cancelled if it is already cancelled or completed.
+     *
+     * @param reservation the reservation to validate
+     *
+     * @throws RuntimeException if the reservation cannot be cancelled
+     */
+    private void validateConfirmation(Reservation reservation) {
+        if (reservation.getStatus().equals(ReservationStatus.CANCELLED)) {
+            throw new RuntimeException("Reservation cannot be confirmed after cancelled");
+        }
+
+        if (reservation.getStatus().equals(ReservationStatus.EXPIRED)) {
+            throw new RuntimeException("Reservation cannot be confirmed after expired");
+        }
+
+        if (reservation.getStatus().equals(ReservationStatus.COMPLETED)) {
+            throw new RuntimeException("Reservation cannot be confirmed after completed");
+        }
+
+        if (reservation.getStatus().equals(ReservationStatus.CONFIRMED)) {
+            throw new RuntimeException("Reservation cannot be confirmed again");
         }
     }
 }

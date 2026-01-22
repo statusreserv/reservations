@@ -1,4 +1,4 @@
-package com.statusreserv.reservations.service.reservation;
+package com.statusreserv.reservations.service.reservation.validator;
 
 import com.statusreserv.reservations.model.reservation.Reservation;
 import com.statusreserv.reservations.model.reservation.ReservationStatus;
@@ -17,16 +17,16 @@ import java.time.LocalDateTime;
  *
  * <p>Validation rules include:
  * <ul>
- *     <li>Status change validation via {@link ReservationStatusValidator}</li>
+ *     <li>Status change validation via {@link ReservationStatusChangeValidator}</li>
  *     <li>Reservation start date/time validation</li>
  *     <li>Minimum days before cancellation rules based on tenant configuration</li>
  * </ul>
  */
 @Component
 @RequiredArgsConstructor
-public class CancellationValidator {
+public class CancellationValidator implements ReservationStatusValidator {
 
-    private final ReservationStatusValidator validator;
+    private final ReservationStatusChangeValidator validator;
 
     /**
      * Validates if a reservation can be cancelled.
@@ -39,7 +39,8 @@ public class CancellationValidator {
      *
      * @throws RuntimeException if the cancellation is not allowed
      */
-    public void validateCancellation(Reservation reservation, boolean force) {
+    @Override
+    public void validate(Reservation reservation, boolean force) {
         if (force) {
             validateForceCancellation(reservation);
         } else {
