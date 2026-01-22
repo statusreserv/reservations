@@ -15,10 +15,6 @@ import java.util.UUID;
 public interface ReservationRepository extends JpaRepository<Reservation, UUID> {
     List<Reservation> findByDateBetweenAndStatusInAndTenantId(LocalDate from, LocalDate to, Set<ReservationStatus> status, UUID tenantId);
     List<Reservation> findByTenantId(UUID tenantId);
-
-    List<Reservation> findByTenantIdAndDate(UUID tenantId, LocalDate date);
-
+    List<Reservation> findByTenantIdAndDateAndStatusNotIn(UUID tenantId, LocalDate date, Set<ReservationStatus> status);
     Optional<Reservation> findByIdAndTenantId(UUID id, UUID tenantId);
-
-    void deleteByIdAndTenantId(UUID id, UUID tenantId);
 }

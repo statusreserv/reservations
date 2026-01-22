@@ -11,18 +11,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.time.DayOfWeek;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
+
  * Implementation of {@link ScheduleService} responsible for managing schedules
  * for the current tenant.
  *
- * <p>Provides operations to create, retrieve, update, and delete schedules,
- * including mapping between DTOs and entities and tenant scoping.
+ * <p>Provides operations to retrieve, update (upsert), and delete schedules,
+ * including mapping between DTOs and entities and tenant scoping.</p>
  */
 @Service
 @RequiredArgsConstructor
@@ -34,10 +33,12 @@ public class ScheduleServiceImpl implements ScheduleService {
     private final ScheduleValidator validator;
 
     /**
-     * Retrieves all schedules as DTOs for the current tenant.
+
+     * Retrieves all schedules for the current tenant and maps them to DTOs.
      *
      * @return a list of {@link ScheduleDTO} representing all schedules
      */
+    @Override
     public List<ScheduleDTO> findAll() {
         return getAll()
                 .stream()
@@ -46,90 +47,135 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     /**
-     * Retrieves all schedule entities for the current tenant.
+
+     * Retrieves all schedule entities scoped to the current tenant.
      *
      * @return a set of {@link Schedule} entities
      */
+    @Override
     public Set<Schedule> getAll() {
-        return new HashSet<>(repository.findByTenantId(currentUserService.getCurrentTenantId()));
+        return new HashSet<>(getAllByTenantId(currentUserService.getCurrentTenantId()));
+    }
+
+    @Override
+    public Set<Schedule> getAllByTenantId(UUID tenantId) {
+        return new HashSet<>(repository.findByTenantId(tenantId));
     }
 
     /**
-     * Retrieves a schedule by its UUID and maps it to DTO.
+
+     * Retrieves a schedule for a given day of week for the current tenant
+     * and maps it to a DTO.
      *
-     * @param id the UUID of the schedule
+     * @param dayOfWeek the day of week of the schedule
      * @return a {@link ScheduleDTO} representing the schedule
-     * @throws EntityNotFoundException if no schedule exists with the given id
+     * @throws EntityNotFoundException if no schedule exists for the given day
      */
-    public ScheduleDTO findSchedule(UUID id) {
-        return mapper.toDTO(getById(id));
+    @Override
+    public ScheduleDTO findSchedule(DayOfWeek dayOfWeek) {
+        return mapper.toDTO(getByDayOfWeek(dayOfWeek));
     }
 
     /**
-     * Retrieves a schedule entity by its UUID for the current tenant.
+
+     * Retrieves a schedule entity for a given day of week
+     * scoped to the current tenant.
      *
-     * @param id the UUID of the schedule
+     * @param dayOfWeek the day of week of the schedule
      * @return the {@link Schedule} entity
-     * @throws EntityNotFoundException if no schedule exists with the given id
+     * @throws EntityNotFoundException if no schedule exists for the given day
      */
-    public Schedule getById(UUID id) {
-        return repository.findByIdAndTenantId(id, currentUserService.getCurrentTenantId())
+    @Override
+    public Schedule getByDayOfWeek(DayOfWeek dayOfWeek) {
+        return getOptionalByDayOfWeek(dayOfWeek)
                 .orElseThrow(() -> new EntityNotFoundException("Schedule not found"));
     }
 
     /**
-     * Creates a new schedule.
+
+     * Creates a new schedule for the current tenant.
+     *
+     * <p>This method is intentionally private and is used internally
+     * to support an upsert-like behavior in {@link #update(Set)}.</p>
      *
      * @param write DTO containing schedule data
-     * @return the UUID of the newly created schedule
+     * @return the persisted {@link Schedule} entity
      */
-    @Transactional
-    public UUID create(ScheduleWrite write) {
+    private Schedule create(ScheduleWrite write) {
         var schedule = mapper.toEntity(write, currentUserService.getCurrentTenant());
         var scheduleTimes = write.scheduleTime()
                 .stream()
                 .map(mapper::toEntity)
                 .collect(Collectors.toSet());
         schedule.setScheduleTime(scheduleTimes);
-
-        var entity = repository.save(schedule);
-        validator.validateSchedule(entity, entity.getId());
-        return entity.getId();
+        return repository.save(schedule);
     }
 
     /**
-     * Updates an existing schedule with new data.
+
+     * Updates existing schedules or creates new ones if they do not exist,
+     * based on the provided day of week, for the current tenant.
      *
-     * @param id the UUID of the schedule to update
-     * @param write DTO containing updated schedule data
-     * @throws EntityNotFoundException if no schedule exists with the given id
+     * <p>This method performs an upsert operation for each entry.</p>
+     *
+     * @param writes set of DTOs containing schedule data
      */
     @Transactional
-    public void update(UUID id, ScheduleWrite write) {
-        var existing = getById(id);
+    public void update(Set<ScheduleWrite> writes) {
+        writes.forEach(write -> {
+            var optionalSchedule = getOptionalByDayOfWeek(write.dayOfWeek());
+            var updatedSchedule = optionalSchedule
+                    .map((schedule) -> update(schedule, write))
+                    .orElseGet(() -> create(write));
+            validator.validateSchedule(updatedSchedule);
+        });
+    }
 
+    /**
+
+     * Updates an existing schedule entity with new data.
+     *
+     * @param schedule the existing schedule entity
+     * @param write DTO containing updated schedule data
+     * @return the updated {@link Schedule} entity
+     */
+    private Schedule update(Schedule schedule, ScheduleWrite write) {
         var scheduleTimes = write.scheduleTime()
                 .stream()
                 .map(mapper::toEntity)
                 .collect(Collectors.toSet());
 
-        existing.setScheduleTime(scheduleTimes);
-        existing.setDayOfWeek(write.dayOfWeek());
-
-        repository.save(existing);
+        schedule.setScheduleTime(scheduleTimes);
+        schedule.setDayOfWeek(write.dayOfWeek());
+        repository.save(schedule);
+        return schedule;
     }
 
     /**
+
      * Deletes a schedule by its UUID for the current tenant.
      *
      * @param id the UUID of the schedule to delete
      * @throws EntityNotFoundException if no schedule exists with the given id
      */
     @Transactional
+    @Override
     public void delete(UUID id) {
         if (!repository.existsById(id)) {
             throw new EntityNotFoundException("Schedule not found");
         }
         repository.deleteByIdAndTenantId(id, currentUserService.getCurrentTenantId());
+    }
+
+    /**
+
+     * Retrieves a schedule for a given day of week for the current tenant,
+     * wrapped in an {@link Optional}.
+     *
+     * @param dayOfWeek the day of week of the schedule
+     * @return an {@link Optional} containing the schedule if found
+     */
+    private Optional<Schedule> getOptionalByDayOfWeek(DayOfWeek dayOfWeek) {
+        return repository.findByTenantIdAndDayOfWeek(currentUserService.getCurrentTenantId(), dayOfWeek);
     }
 }

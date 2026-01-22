@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Service responsible for handling availability and time slot calculations.
@@ -21,7 +22,7 @@ public interface AvailabilityService {
      * @param request AvailabilityRequestDTO containing search parameters
      * @return AvailabilityDTO with available time slots and resources
      */
-    AvailabilityDTO findAvailability(AvailabilityRequestDTO request);
+    AvailabilityDTO findAvailability(AvailabilityRequestDTO request, UUID tenantId);
 
     /**
      * Calculates available time slots given existing busy periods and desired duration.
@@ -30,6 +31,9 @@ public interface AvailabilityService {
      * @param durationMinutes Duration in minutes for each desired time slot
      * @return Set of TimeSlotDTO representing all available time slots
      */
-    Set<TimeSlotDTO> getAvailableTimeSlots(Map<LocalDate, List<TimeRangeDTO>> periods, int durationMinutes);
+    Set<TimeSlotDTO> getAvailableTimeSlots(Map<LocalDate, List<TimeRangeDTO>> periods, int durationMinutes, UUID tenantId, UUID ignoreReservationId);
+
+    Set<TimeSlotDTO> getAvailableTimeSlots(Map<LocalDate, List<TimeRangeDTO>> periods, int durationMinutes, UUID tenantId);
+
 
 }

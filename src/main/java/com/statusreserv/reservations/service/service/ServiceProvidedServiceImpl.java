@@ -72,7 +72,12 @@ public class ServiceProvidedServiceImpl implements ServiceProvidedService {
      * @return a list of {@link ServiceProvided} entities
      */
     public List<ServiceProvided> findByIdIn(Set<UUID> ids) {
-        return repository.findByIdInAndTenantId(ids, currentUserService.getCurrentTenantId());
+        return findByIdInAndTenantId(ids, currentUserService.getCurrentTenantId());
+    }
+
+    @Override
+    public List<ServiceProvided> findByIdInAndTenantId(Set<UUID> ids, UUID tenantId) {
+        return repository.findByIdInAndTenantId(ids, tenantId);
     }
 
     /**

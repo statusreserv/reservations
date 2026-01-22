@@ -5,6 +5,7 @@ import com.statusreserv.reservations.dto.schedule.ScheduleTimeWrite;
 import com.statusreserv.reservations.dto.schedule.ScheduleWrite;
 import com.statusreserv.reservations.mapper.ScheduleMapper;
 import com.statusreserv.reservations.model.schedule.Schedule;
+import com.statusreserv.reservations.model.schedule.ScheduleTime;
 import com.statusreserv.reservations.model.tenant.Tenant;
 import com.statusreserv.reservations.repository.ScheduleRepository;
 import com.statusreserv.reservations.service.auth.CurrentUserService;
@@ -47,63 +48,71 @@ class ScheduleServiceTest {
         Schedule schedule = new Schedule();
         schedule.setId(UUID.randomUUID());
 
-        when(repository.findAll()).thenReturn(List.of(schedule));
+        when(repository.findByTenantId(any())).thenReturn(List.of(schedule));
+        when(currentUserService.getCurrentTenantId()).thenReturn(UUID.randomUUID());
         when(mapper.toDTO(schedule)).thenReturn(new ScheduleDTO(UUID.randomUUID(), DayOfWeek.MONDAY, Set.of()));
 
         List<ScheduleDTO> result = service.findAll();
 
         assertEquals(1, result.size());
-        verify(repository, times(1)).findAll();
+        verify(repository, times(1)).findByTenantId(any());
     }
 
     @Test
     void shouldThrowWhenScheduleNotFound() {
-        UUID id = UUID.randomUUID();
-        when(repository.findById(id)).thenReturn(Optional.empty());
+        DayOfWeek day = DayOfWeek.MONDAY;
+        when(repository.findByTenantIdAndDayOfWeek(any(), eq(day))).thenReturn(Optional.empty());
+        when(currentUserService.getCurrentTenantId()).thenReturn(UUID.randomUUID());
 
-        assertThrows(EntityNotFoundException.class, () -> service.findSchedule(id));
+        assertThrows(EntityNotFoundException.class, () -> service.findSchedule(day));
     }
 
     @Test
-    void shouldCreateScheduleSuccessfully() {
-        ScheduleWrite write = new ScheduleWrite(DayOfWeek.FRIDAY, Set.of(new ScheduleTimeWrite(LocalTime.of(8, 0), LocalTime.of(12, 0))));
+    void shouldCreateScheduleViaUpdateWhenNotExist() {
+        DayOfWeek day = DayOfWeek.FRIDAY;
+        Tenant tenant = new Tenant();
+        ScheduleWrite write = new ScheduleWrite(day, Set.of(new ScheduleTimeWrite(LocalTime.of(8, 0), LocalTime.of(12, 0))));
         Schedule schedule = new Schedule();
-        schedule.setId(UUID.randomUUID());
-        schedule.setTenant(new Tenant());
+        schedule.setTenant(tenant);
 
-        when(mapper.toEntity(any(), any())).thenReturn(schedule);
-        when(repository.save(any(Schedule.class))).thenReturn(schedule);
+        when(currentUserService.getCurrentTenant()).thenReturn(tenant);
+        when(currentUserService.getCurrentTenantId()).thenReturn(UUID.randomUUID());
+        when(repository.findByTenantIdAndDayOfWeek(any(), eq(day))).thenReturn(Optional.empty());
+        when(mapper.toEntity(write, tenant)).thenReturn(schedule);
+        when(mapper.toEntity(any(ScheduleTimeWrite.class))).thenReturn(new ScheduleTime());
+        when(repository.save(schedule)).thenReturn(schedule);
 
-        UUID id = service.create(write);
+        service.update(Set.of(write));
 
-        assertNotNull(id);
-        verify(repository).save(any(Schedule.class));
+        verify(repository).save(schedule);
+        verify(validator).validateSchedule(schedule);
     }
 
     @Test
-    void shouldUpdateScheduleSuccessfully() {
-        UUID id = UUID.randomUUID();
+    void shouldUpdateExistingScheduleViaUpdate() {
+        DayOfWeek existingDay = DayOfWeek.SATURDAY;
+        DayOfWeek updateDay = DayOfWeek.SUNDAY;
+        Tenant tenant = new Tenant();
 
         Schedule existing = new Schedule();
-        existing.setId(id);
-        existing.setDayOfWeek(DayOfWeek.SATURDAY);
+        existing.setDayOfWeek(existingDay);
+        existing.setTenant(tenant);
 
-        Tenant tenant = new Tenant();
-        ScheduleWrite write = new ScheduleWrite(
-                DayOfWeek.SUNDAY,
-                Set.of(new ScheduleTimeWrite(LocalTime.of(9, 0), LocalTime.of(11, 0)))
-        );
+        ScheduleWrite write = new ScheduleWrite(updateDay, Set.of(new ScheduleTimeWrite(LocalTime.of(9, 0), LocalTime.of(11, 0))));
 
-        when(repository.findByIdAndTenantId(id, tenant.getId())).thenReturn(Optional.of(existing));
         when(currentUserService.getCurrentTenant()).thenReturn(tenant);
-        when(mapper.toEntity(write, tenant)).thenReturn(existing);
+        when(currentUserService.getCurrentTenantId()).thenReturn(UUID.randomUUID());
+        when(repository.findByTenantIdAndDayOfWeek(any(), eq(updateDay))).thenReturn(Optional.of(existing));
+        ScheduleTime scheduleTime = new ScheduleTime();
+        when(mapper.toEntity(any(ScheduleTimeWrite.class))).thenReturn(scheduleTime);
         when(repository.save(existing)).thenReturn(existing);
 
-        service.update(id, write);
+        service.update(Set.of(write));
 
-        verify(repository, times(1)).save(existing);
+        assertEquals(updateDay, existing.getDayOfWeek());
+        verify(repository).save(existing);
+        verify(validator).validateSchedule(existing);
     }
-
 
     @Test
     void shouldDeleteScheduleSuccessfully() {
@@ -115,7 +124,7 @@ class ScheduleServiceTest {
 
         service.delete(id);
 
-        verify(repository, times(1)).deleteByIdAndTenantId(id, tenantId);
+        verify(repository).deleteByIdAndTenantId(id, tenantId);
     }
 
     @Test
@@ -125,4 +134,5 @@ class ScheduleServiceTest {
 
         assertThrows(EntityNotFoundException.class, () -> service.delete(id));
     }
+
 }

@@ -3,12 +3,15 @@ package com.statusreserv.reservations.controller;
 import com.statusreserv.reservations.dto.availability.AvailabilityDTO;
 import com.statusreserv.reservations.dto.availability.AvailabilityRequestDTO;
 import com.statusreserv.reservations.service.availability.AvailabilityService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.UUID;
 
 import static com.statusreserv.reservations.constants.Endpoints.AVAILABILITY;
 
@@ -34,7 +37,11 @@ public class AvailabilityController {
      * @return {@link AvailabilityDTO} containing the available time slots and services
      */
     @GetMapping
-    public ResponseEntity<AvailabilityDTO> search(@ModelAttribute AvailabilityRequestDTO request) {
-        return ResponseEntity.ok(availabilityService.findAvailability(request));
+    public ResponseEntity<AvailabilityDTO> search(@ModelAttribute AvailabilityRequestDTO request, HttpServletRequest httpRequest) {
+        String tenantIdHeader = httpRequest.getHeader("X-Tenant-ID");
+        if (tenantIdHeader == null) {
+            throw new RuntimeException("X-Tenant-ID header is required");
+        }
+        return ResponseEntity.ok(availabilityService.findAvailability(request, UUID.fromString(tenantIdHeader)));
     }
 }

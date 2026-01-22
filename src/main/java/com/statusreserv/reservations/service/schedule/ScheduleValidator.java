@@ -2,7 +2,6 @@ package com.statusreserv.reservations.service.schedule;
 
 import com.statusreserv.reservations.model.schedule.Schedule;
 import com.statusreserv.reservations.model.schedule.ScheduleTime;
-import com.statusreserv.reservations.repository.ScheduleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -22,39 +21,33 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ScheduleValidator {
 
-    private final ScheduleRepository repository;
-
     /**
      * Validates a schedule before creation or update.
      *
      * @param schedule the {@link Schedule} to validate
-     * @param ignoreId the ID of a schedule to ignore (useful when updating an existing schedule)
      * @throws IllegalArgumentException if any validation fails
      */
-    public void validateSchedule(Schedule schedule, UUID ignoreId) {
+    public void validateSchedule(Schedule schedule) {
+        var newTimes = schedule.getScheduleTime();
+        newTimes.forEach(this::validateTime);
+        validateOverlapping(schedule);
+    }
+
+    private void validateOverlapping(Schedule schedule) {
         var tenant = schedule.getTenant();
         var day = schedule.getDayOfWeek();
-        var newTimes = schedule.getScheduleTime();
-
-        // Validate individual schedule times
-        newTimes.forEach(this::validateTime);
-
-        // Check for overlapping schedules
-        repository.findByTenantIdAndDayOfWeek(tenant.getId(), day)
-                .stream()
-                .filter(existing -> !existing.getId().equals(ignoreId))
-                .forEach(existing -> {
-                    for (ScheduleTime existingTime : existing.getScheduleTime()) {
-                        for (ScheduleTime newTime : newTimes) {
-                            if (isOverlapping(existingTime, newTime)) {
-                                throw new IllegalArgumentException(
-                                        "Schedule conflict: overlapping time for tenant "
-                                                + tenant.getId() + " on " + day
-                                );
-                            }
-                        }
-                    }
-                });
+        var times = schedule.getScheduleTime();
+        times.forEach(time -> time.setTemporaryId(UUID.randomUUID()));
+        for (ScheduleTime existingTime : times) {
+            for (ScheduleTime newTime : times) {
+                if (isOverlapping(existingTime, newTime) && !existingTime.getTemporaryId().equals(newTime.getTemporaryId())) {
+                    throw new IllegalArgumentException(
+                            "Schedule conflict: overlapping time for tenant "
+                                    + tenant.getId() + " on " + day
+                    );
+                }
+            }
+        }
     }
 
     /**

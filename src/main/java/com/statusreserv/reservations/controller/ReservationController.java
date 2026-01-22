@@ -53,6 +53,6 @@ public class ReservationController {
     @PostMapping
     @Operation(summary = "Create reservation", description = "Create a new reservation and return its ID")
     public ResponseEntity<UUID> create(@Valid @RequestBody ReservationWrite write) {
-        return ResponseEntity.ok( reservationService.create(write));
+        return ResponseEntity.ok(reservationService.create(write));
     }
 }

@@ -11,8 +11,7 @@ import java.util.UUID;
 
 @Repository
 public interface ScheduleRepository extends JpaRepository<Schedule, UUID> {
-    List<Schedule> findByTenantIdAndDayOfWeek(UUID tenantId, DayOfWeek dayOfWeek);
+    Optional<Schedule> findByTenantIdAndDayOfWeek(UUID tenantId, DayOfWeek dayOfWeek);
     List<Schedule> findByTenantId(UUID tenantId);
-    Optional<Schedule> findByIdAndTenantId(UUID id, UUID tenantId);
     void deleteByIdAndTenantId(UUID id, UUID tenantId);
 }

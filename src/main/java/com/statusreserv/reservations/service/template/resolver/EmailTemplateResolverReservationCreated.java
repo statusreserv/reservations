@@ -7,7 +7,7 @@ import com.statusreserv.reservations.model.email.Email;
 import com.statusreserv.reservations.model.email.EmailReservationTemplateCreatedRequest;
 import com.statusreserv.reservations.model.emailtemplate.EmailTemplate;
 import com.statusreserv.reservations.model.reservation.Reservation;
-import com.statusreserv.reservations.model.reservation.ReservationService;
+import com.statusreserv.reservations.model.reservation.ReservationServiceProvided;
 import com.statusreserv.reservations.repository.EmailTemplateRepository;
 import com.statusreserv.reservations.service.auth.CurrentUserService;
 import com.statusreserv.reservations.service.template.render.TemplateRender;
@@ -49,7 +49,7 @@ public class EmailTemplateResolverReservationCreated implements EmailTemplateRes
 
     public Map<String, Object> getVariables(Reservation reservation) {
         var variables = new HashMap<String, Object>();
-        var services = reservation.getServices().stream().map(ReservationService::getName)
+        var services = reservation.getReservationServices().stream().map(ReservationServiceProvided::getName)
                 .reduce((a, b) -> a + ", "+  b)
                 .orElse("");
         var reservationCode = reservation.getId().toString().substring(0, 5).toUpperCase();

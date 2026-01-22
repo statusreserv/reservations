@@ -51,6 +51,15 @@ public interface ServiceProvidedService {
     List<ServiceProvided> findByIdIn(Set<UUID> id);
 
     /**
+     * Retrieves a list of service entities by their identifiers.
+     *
+     * @param id set of UUIDs of the services
+     * @param tenantId set of UUIDs of the services
+     * @return a list of {@link ServiceProvided} entities
+     */
+    List<ServiceProvided> findByIdInAndTenantId(Set<UUID> id, UUID tenantId);
+
+    /**
      * Creates a new service.
      *
      * @param write DTO containing service data to create

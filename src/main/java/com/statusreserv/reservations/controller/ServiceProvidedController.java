@@ -30,7 +30,7 @@ public class ServiceProvidedController {
      * @return list of {@link ServiceProvidedDTO}
      */
     @GetMapping
-    public ResponseEntity<List<ServiceProvidedDTO>> findAll() {
+    public ResponseEntity<List<ServiceProvidedDTO>> getAll() {
         return ResponseEntity.ok(serviceProvidedService.findAll());
     }
 
@@ -41,7 +41,7 @@ public class ServiceProvidedController {
      * @return {@link ServiceProvidedDTO} representing the service
      */
     @GetMapping(ID)
-    public ResponseEntity<ServiceProvidedDTO> findById(@PathVariable UUID id) {
+    public ResponseEntity<ServiceProvidedDTO> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(serviceProvidedService.findService(id));
     }
 

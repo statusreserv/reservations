@@ -8,8 +8,8 @@ import com.statusreserv.reservations.mapper.ServiceProvidedMapper;
 import com.statusreserv.reservations.model.reservation.Reservation;
 import com.statusreserv.reservations.model.reservation.ReservationStatus;
 import com.statusreserv.reservations.model.schedule.Schedule;
-import com.statusreserv.reservations.repository.service.ServiceProvided;
 import com.statusreserv.reservations.repository.ReservationRepository;
+import com.statusreserv.reservations.repository.service.ServiceProvided;
 import com.statusreserv.reservations.service.auth.CurrentUserService;
 import com.statusreserv.reservations.service.schedule.ScheduleService;
 import com.statusreserv.reservations.service.service.ServiceProvidedService;
@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -43,7 +42,6 @@ public class AvailabilityServiceImpl implements AvailabilityService {
 
     private final ServiceProvidedService serviceProvidedService;
     private final ReservationRepository reservationRepository;
-    private final CurrentUserService currentUserService;
     private final ScheduleService scheduleService;
     private final ServiceProvidedMapper serviceProvidedMapper;
 
@@ -54,12 +52,12 @@ public class AvailabilityServiceImpl implements AvailabilityService {
      * @return {@link AvailabilityDTO} with available time slots and corresponding services
      */
     @Override
-    public AvailabilityDTO findAvailability(AvailabilityRequestDTO request) {
-        var services = serviceProvidedService.findByIdIn(request.services());
+    public AvailabilityDTO findAvailability(AvailabilityRequestDTO request, UUID tenantId) {
+        var services = serviceProvidedService.findByIdInAndTenantId(request.services(), tenantId);
         var durationMinutes = getTotalDuration(services);
         var dates = getDatesBetween(request.from(), request.to());
-        var periods = getPeriods(dates);
-        var availableSlots = getAvailableTimeSlots(periods, durationMinutes);
+        var periods = getPeriods(dates, tenantId);
+        var availableSlots = getAvailableTimeSlots(periods, durationMinutes, tenantId);
 
         var serviceDTOList = services.stream()
                 .map(serviceProvidedMapper::toDTO)
@@ -74,8 +72,8 @@ public class AvailabilityServiceImpl implements AvailabilityService {
      * @param dates list of dates to compute periods for
      * @return map with {@link LocalDate} as key and {@link List} of {@link TimeRangeDTO} as value
      */
-    public Map<LocalDate, List<TimeRangeDTO>> getPeriods(List<LocalDate> dates) {
-        var schedules = scheduleService.getAll();
+    public Map<LocalDate, List<TimeRangeDTO>> getPeriods(List<LocalDate> dates, UUID tenantId) {
+        var schedules = scheduleService.getAllByTenantId(tenantId);
         var timeSlotsPerDate = new HashMap<LocalDate, List<TimeRangeDTO>>();
 
         var schedulesDays = schedules.stream()
@@ -99,6 +97,14 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         return timeSlotsPerDate;
     }
 
+    public Set<TimeSlotDTO> getAvailableTimeSlots(
+            Map<LocalDate, List<TimeRangeDTO>> periods,
+            int durationMinutes,
+            UUID tenantId
+    )  {
+        return getAvailableTimeSlots(periods, durationMinutes, tenantId, null);
+    }
+
     /**
      * Computes available time slots based on operating periods, existing reservations,
      * and desired duration.
@@ -107,21 +113,27 @@ public class AvailabilityServiceImpl implements AvailabilityService {
      * @param durationMinutes total duration of selected services in minutes
      * @return set of {@link TimeSlotDTO} representing available slots
      */
-    public Set<TimeSlotDTO> getAvailableTimeSlots(Map<LocalDate, List<TimeRangeDTO>> periods, int durationMinutes) {
-        if (periods.isEmpty()) return Set.of();
+    public Set<TimeSlotDTO> getAvailableTimeSlots(
+            Map<LocalDate, List<TimeRangeDTO>> periods,
+            int durationMinutes,
+            UUID tenantId,
+            UUID ignoreReservationId
+    ) {
+        if (periods.isEmpty() || durationMinutes <= 0) return Set.of();
 
         var startDate = periods.keySet().stream().min(LocalDate::compareTo).orElseThrow();
         var endDate = periods.keySet().stream().max(LocalDate::compareTo).orElseThrow();
 
-        var statuses = Set.of(ReservationStatus.COMPLETED, ReservationStatus.PENDING, ReservationStatus.CONFIRMED);
-        var reservations = reservationRepository.findByDateBetweenAndStatusInAndTenantId(
-                startDate,
-                endDate,
-                statuses,
-                currentUserService.getCurrentTenantId()
+        var statuses = Set.of(
+                ReservationStatus.COMPLETED,
+                ReservationStatus.PENDING,
+                ReservationStatus.CONFIRMED
         );
 
-        var reservationsByDate = reservations.stream()
+        var reservationsByDate = reservationRepository
+                .findByDateBetweenAndStatusInAndTenantId(startDate, endDate, statuses, tenantId)
+                .stream()
+                .filter(reservation -> !reservation.getId().equals(ignoreReservationId))
                 .collect(Collectors.groupingBy(Reservation::getDate));
 
         var availableSlots = new LinkedHashSet<TimeSlotDTO>();
@@ -131,33 +143,37 @@ public class AvailabilityServiceImpl implements AvailabilityService {
             var dayPeriods = entry.getValue();
             var dayReservations = reservationsByDate.getOrDefault(date, List.of());
 
-            for (var dayPeriod : dayPeriods) {
-                var start = dayPeriod.start();
-                var end = dayPeriod.end();
-                if (!start.isBefore(end)) continue;
+            for (var period : dayPeriods) {
+                var cursor = period.start();
+                var periodEnd = period.end();
 
-                while (!start.plusMinutes(durationMinutes).isAfter(end)) {
-                    var slotEnd = start.plusMinutes(durationMinutes);
-                    var finalCursor = start;
+                if (!cursor.isBefore(periodEnd)) continue;
 
-                    var slotTaken = dayReservations.stream().anyMatch(r ->
-                            r.getStartTime().isBefore(slotEnd) &&
-                                    r.getEndTime().isAfter(finalCursor)
-                    );
+                while (true) {
+                    var slotEnd = cursor.plusMinutes(durationMinutes);
+                    if (slotEnd.isAfter(periodEnd)) break;
 
-                    if (!slotTaken) {
-                        availableSlots.add(new TimeSlotDTO(date, new TimeRangeDTO(start, slotEnd)));
+                    var taken = false;
+                    for (var r : dayReservations) {
+                        if (r.getStartTime().isBefore(slotEnd)
+                                && r.getEndTime().isAfter(cursor)) {
+                            taken = true;
+                            break;
+                        }
                     }
 
-                    start = start.plusMinutes(durationMinutes);
+                    if (!taken) {
+                        availableSlots.add(
+                                new TimeSlotDTO(date, new TimeRangeDTO(cursor, slotEnd))
+                        );
+                    }
+
+                    cursor = slotEnd;
                 }
             }
         }
 
-        return availableSlots.stream().sorted(
-                Comparator.comparing(TimeSlotDTO::date)
-                        .thenComparing(slot -> slot.timeRange().start())
-        ).collect(Collectors.toCollection(LinkedHashSet::new));
+        return availableSlots;
     }
 
     /**

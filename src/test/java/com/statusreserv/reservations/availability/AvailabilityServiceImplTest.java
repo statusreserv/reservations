@@ -7,8 +7,8 @@ import com.statusreserv.reservations.mapper.ServiceProvidedMapper;
 import com.statusreserv.reservations.model.reservation.Reservation;
 import com.statusreserv.reservations.model.schedule.Schedule;
 import com.statusreserv.reservations.model.schedule.ScheduleTime;
-import com.statusreserv.reservations.repository.service.ServiceProvided;
 import com.statusreserv.reservations.repository.ReservationRepository;
+import com.statusreserv.reservations.repository.service.ServiceProvided;
 import com.statusreserv.reservations.service.auth.CurrentUserService;
 import com.statusreserv.reservations.service.availability.AvailabilityServiceImpl;
 import com.statusreserv.reservations.service.schedule.ScheduleService;
@@ -67,7 +67,9 @@ class AvailabilityServiceImplTest {
 
         var schedule = new Schedule();
         schedule.setDayOfWeek(DayOfWeek.MONDAY);
-        schedule.setScheduleTime(Set.of(new ScheduleTime(LocalTime.of(9, 0), LocalTime.of(10, 0))));
+        schedule.setScheduleTime(Set.of(new ScheduleTime()
+                .withOpenTime(LocalTime.of(9, 0))
+                .withCloseTime(LocalTime.of(10, 0))));
         var list = new HashSet<Schedule>();
         list.add(schedule);
         when(scheduleService.getAll()).thenReturn(list);
@@ -76,7 +78,7 @@ class AvailabilityServiceImplTest {
         when(reservationRepository.findByDateBetweenAndStatusInAndTenantId(any(), any(), any(), any()))
                 .thenReturn(Collections.emptyList());
 
-        var result = availabilityService.findAvailability(request);
+        var result = availabilityService.findAvailability(request, UUID.randomUUID());
 
         assertThat(result).isNotNull();
         assertThat(result.timeSlots()).isNotEmpty();
@@ -85,24 +87,25 @@ class AvailabilityServiceImplTest {
 
     @Test
     void testGetPeriods_returnsCorrectMap() {
-        var monday = LocalDate.of(2025, 11, 10); // Monday
+        var monday = LocalDate.of(2025, 11, 10);
 
         var schedule = new Schedule();
         schedule.setDayOfWeek(DayOfWeek.MONDAY);
-        schedule.setScheduleTime(Set.of(new ScheduleTime(LocalTime.of(9, 0), LocalTime.of(17, 0))));
-
+        schedule.setScheduleTime(Set.of(new ScheduleTime()
+                .withOpenTime(LocalTime.of(9, 0))
+                .withCloseTime(LocalTime.of(17, 0))));
         var list = new HashSet<Schedule>();
         list.add(schedule);
 
         when(scheduleService.getAll()).thenReturn(list);
 
-        var result = availabilityService.getPeriods(List.of(monday));
+        var result = availabilityService.getPeriods(List.of(monday), currentUserService.getCurrentTenantId());
 
         assertThat(result).containsKey(monday);
         var timeRanges = result.get(monday);
         assertThat(timeRanges).hasSize(1);
         assertThat(timeRanges.get(0).start()).isEqualTo(LocalTime.of(9, 0));
-        assertThat(timeRanges.get(0).end()).isEqualTo(LocalTime.of(17, 0)); // podes também validar o fim
+        assertThat(timeRanges.get(0).end()).isEqualTo(LocalTime.of(17, 0));
     }
 
 
@@ -116,7 +119,7 @@ class AvailabilityServiceImplTest {
         when(reservationRepository.findByDateBetweenAndStatusInAndTenantId(any(), any(), any(), any()))
                 .thenReturn(Collections.emptyList());
 
-        var slots = availabilityService.getAvailableTimeSlots(periods, 30);
+        var slots = availabilityService.getAvailableTimeSlots(periods, 30, UUID.randomUUID());
 
         assertThat(slots).isNotEmpty();
         assertThat(slots.iterator().next().date()).isEqualTo(date);
@@ -137,7 +140,7 @@ class AvailabilityServiceImplTest {
         when(reservationRepository.findByDateBetweenAndStatusInAndTenantId(any(), any(), any(), any()))
                 .thenReturn(List.of(reservation));
 
-        var slots = availabilityService.getAvailableTimeSlots(periods, 30);
+        var slots = availabilityService.getAvailableTimeSlots(periods, 30, UUID.randomUUID());
 
         assertThat(slots).isNotEmpty();
         assertThat(slots.iterator().next().timeRange().start()).isEqualTo(LocalTime.of(9, 30));
@@ -145,7 +148,7 @@ class AvailabilityServiceImplTest {
 
     @Test
     void testGetAvailableTimeSlots_emptyPeriods_returnsEmptySet() {
-        var result = availabilityService.getAvailableTimeSlots(Collections.emptyMap(), 30);
+        var result = availabilityService.getAvailableTimeSlots(Collections.emptyMap(), 30, UUID.randomUUID());
         assertThat(result).isEmpty();
     }
 }

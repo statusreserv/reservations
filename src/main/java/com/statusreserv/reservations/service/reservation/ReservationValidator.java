@@ -4,17 +4,18 @@ import com.statusreserv.reservations.dto.availability.TimeRangeDTO;
 import com.statusreserv.reservations.dto.availability.TimeSlotDTO;
 import com.statusreserv.reservations.model.reservation.Reservation;
 import com.statusreserv.reservations.model.reservation.ReservationServiceProvided;
+import com.statusreserv.reservations.model.reservation.ReservationStatus;
 import com.statusreserv.reservations.model.schedule.Schedule;
 import com.statusreserv.reservations.repository.ReservationRepository;
-import com.statusreserv.reservations.repository.ScheduleRepository;
 import com.statusreserv.reservations.service.availability.AvailabilityService;
+import com.statusreserv.reservations.service.schedule.ScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.List;
 
 /**
  * Validates reservations against schedule, availability, and overlapping constraints.
@@ -25,7 +26,7 @@ public class ReservationValidator {
 
     private final ReservationRepository reservationRepository;
     private final AvailabilityService availabilityService;
-    private final ScheduleRepository scheduleRepository;
+    private final ScheduleService scheduleService;
 
     /**
      * Validates a reservation, checking services, schedule, overlaps, and available time slots.
@@ -41,25 +42,25 @@ public class ReservationValidator {
                 .mapToInt(ReservationServiceProvided::getDurationMinutes)
                 .sum();
 
-        var schedules = scheduleRepository.findByTenantIdAndDayOfWeek(
-                reservation.getTenant().getId(), reservation.getDate().getDayOfWeek()
-        );
+        var schedule = scheduleService.getByDayOfWeek(reservation.getDate().getDayOfWeek());
 
-        checkWithinSchedule(schedules, reservation);
+        checkWithinSchedule(schedule, reservation);
 
-        var existingReservations = reservationRepository.findByTenantIdAndDate(
-                        reservation.getTenant().getId(), reservation.getDate()
-                ).stream()
+        var existingReservations = reservationRepository.findByTenantIdAndDateAndStatusNotIn(
+                reservation.getTenant().getId(),
+                        reservation.getDate(),
+                Set.of(ReservationStatus.CANCELLED, ReservationStatus.EXPIRED))
+                .stream()
                 .filter(r -> !r.getId().equals(ignoreId))
                 .toList();
 
+        var timeRange = new TimeRangeDTO(reservation.getStartTime(), reservation.getEndTime());
+
         var availableTimeSlots = availabilityService.getAvailableTimeSlots(
-                Map.of(reservation.getDate(),
-                        existingReservations.stream()
-                                .map(r -> new TimeRangeDTO(r.getStartTime(), r.getEndTime()))
-                                .toList()
-                ),
-                totalDuration
+                Map.of(reservation.getDate(), List.of(timeRange)),
+                totalDuration,
+                reservation.getTenant().getId(),
+                reservation.getId()
         );
 
         checkOverlap(existingReservations, reservation);
@@ -76,12 +77,10 @@ public class ReservationValidator {
         }
     }
 
-    private void checkWithinSchedule(List<Schedule> schedules, Reservation reservation) {
-        var withinSchedule = schedules.stream().anyMatch(
-                schedule -> schedule.getScheduleTime().stream().anyMatch(
+    private void checkWithinSchedule(Schedule schedule, Reservation reservation) {
+        var withinSchedule = schedule.getScheduleTime().stream().anyMatch(
                         time -> !reservation.getStartTime().isBefore(time.getOpenTime()) &&
                                 !reservation.getEndTime().isAfter(time.getCloseTime())
-                )
         );
 
         if (!withinSchedule) {
